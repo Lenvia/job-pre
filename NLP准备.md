@@ -125,7 +125,21 @@ Seq2Seq是从一个句子生成另一个句子
 
 
 
-### Transformer
+### ⚠️Transformer
+
+https://zh-v2.d2l.ai/chapter_attention-mechanisms/transformer.html
+
+Transformer是一个纯使用注意力的 编码-解码器
+
+编码器和解码器都有n个 transformer 块
+
+每个块里使用多头注意力，基于位置的前馈网络，和层归一化。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkdudis5aj30s20yewhe.jpg" alt="截屏2021-12-20 16.33.51" style="zoom:40%;" />
+
+从宏观角度来看，transformer 的编码器是由多个相同的层叠加而成的，每个层都有两个子层。第一个子层是*多头自注意力*（multi-head self-attention）汇聚；第二个子层是*基于位置的前馈网络*（positionwise feed-forward network）。具体来说，在计算编码器的自注意力时，查询、键和值都来自前一个编码器层的输出。受 [7.6节](https://zh-v2.d2l.ai/chapter_convolutional-modern/resnet.html#sec-resnet)中残差网络的启发，每个子层都采用了*残差连接*（residual connection）。在残差连接的加法计算之后，紧接着应用 LayerNorm 。因此，输入序列对应的每个位置，transformer编码器都将输出一个d维表示向量。
+
+Transformer解码器也是由多个相同的层叠加而成的，并且层中使用了残差连接和LayerNorm。除了编码器中描述的两个子层之外，解码器还在这两个子层之间插入了第三个子层，称为*编码器－解码器注意力*（encoder-decoder attention）层。在编码器－解码器注意力中，查询来自前一个解码器层的输出，而键和值来自整个编码器的输出。在解码器自注意力中，查询、键和值都来自上一个解码器层的输出。但是，解码器中的<u>每个位置只能考虑该位置之前的所有位置</u>。这种*掩蔽*（masked）注意力保留了*自回归*（auto-regressive）属性，<u>确保预测仅依赖于已生成的输出词元</u>。
 
 
 
@@ -175,7 +189,7 @@ BERT输入序列明确地表示单个文本和文本对。
 
 模型输入：通过查询字向量表将文本中的每个字转换为一维向量
 
-模型输出：输入各字对应的融合全文语义信息后的向量表示。
+模型输出：输入各字对应的融合全文语义信息后的向量表示。（抽取了上下文信息的特征向量）
 
 
 
@@ -190,21 +204,21 @@ BERT（来自Transformers的双向编码器表示）结合了这两个方面的�
 
 
 
-
-
 架构：
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxk938f9gbj31a00oygog.jpg" alt="截屏2021-12-20 13.49.20" style="zoom: 33%;" />
 
+Bert maxposition：512
 
+谷歌开源的预训练模型，那么这个词表的大小将会被限制在512
 
 
 
 #### 预训练任务1: 带掩码的语言模型
 
-- Transformer的编码器是双向的，标准语言模型要求单向。
+- Transformer的编码器是双向的，标准语言模型要求单向（不能考虑它之后的词的信息）。
 - 每次随机（15%）将一些词元换成\<mask>。每次去预测一下是什么
-- 因为微调任务重没有\<mask> （不要让模型看见mask就去预测）
+- 因为微调任务中没有\<mask> （不要让模型看见mask就去预测）
   - 80%概率下，将选中的词元变成\<mask>
   - 10%概率换成一个随机词元
   - 10%概率保持原有的词元
@@ -215,11 +229,11 @@ BERT（来自Transformers的双向编码器表示）结合了这两个方面的�
 - 训练样本中
   - 50%概率选择相邻句子对
   - 50%概率选择随机句子对
-- 将\<cls>对应的输出放到一个全连接层来预测（是不是相邻）
+- **将\<cls>对应的输出放到一个全连接层来预测**（是不是相邻）
 
 
 
-#### 总结
+#### 预训练总结
 
 - BERT针对微调设计
 - 相比于Transformer：模型更大，训练数据更多；输入句子对，片段嵌入，可学习的位置编码；训练时使用两个任务 带掩码的语言模型、下一个句子预测。
@@ -228,9 +242,58 @@ BERT（来自Transformers的双向编码器表示）结合了这两个方面的�
 
 
 
+#### 微调
+
+https://www.bilibili.com/video/BV15L4y1v7ts?spm_id_from=333.999.0.0
+
+Bert 对每一个词元返回 **抽取了上下文信息的特征向量**。（特征维度大小就是hidden size）
+
+不同的任务会使用不同的特征。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkekqny7gj30l60ekwf2.jpg" alt="截屏2021-12-20 16.59.10" style="zoom:50%;" />
 
 
 
+例子：句子分类
+
+将\<cls>对应的向量输入到全连接层进行分类
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkelwgm71j317m0fqjsl.jpg" alt="截屏2021-12-20 17.00.18" style="zoom:50%;" />
+
+为什么？
+
+1. 预训练时判断两个句子是不是一个pair，用的就是cls。
+2. 这个无明显语义信息的符号会更“公平”地融合文本中各个字/词的语义信息。
+
+
+
+例子：命名实体识别
+
+识别一个词是不是命名实体，例如人命、机构、位置。
+
+将非特殊词（除去了cls，sep）放进全连接层分类。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkepn9mb1j30ia0dyjrq.jpg" alt="截屏2021-12-20 17.03.54" style="zoom:50%;" />
+
+
+
+例子：问题问答
+
+给定一个问题，和描述文字，找出一个片段作为回答
+
+对片段中的每个词元预测它是不是回答的开头或结束
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkeqi6robj30pi0f40tb.jpg" alt="截屏2021-12-20 17.04.44" style="zoom:50%;" />
+
+
+
+
+
+#### 微调总结
+
+即使下游任务各有不同，使用Bert微调时均只需要增加输出层。
+
+但根据任务的不同，输入的表示，和使用的Bert特征也会不一样。
 
 
 
@@ -286,6 +349,8 @@ XGBoost的特点，缺失值如何处理
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxka3l8jpwj30la0cc3z3.jpg" alt="截屏2021-12-20 14.24.17" style="zoom:50%;" />
 
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkb8z7cmlj30wo0lytak.jpg" alt="截屏2021-12-20 15.04.02" style="zoom: 33%;" />
+
 #### 评分函数
 
 **非参注意力池化层**
@@ -297,6 +362,8 @@ XGBoost的特点，缺失值如何处理
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkaa8n8w0j30wa0h8q4r.jpg" alt="截屏2021-12-20 14.30.43" style="zoom: 33%;" />
 
 其中 K 叫做核函数。衡量 x 和 xi 距离的函数。
+
+如果一个键 xi越是接近给定的查询 x， 那么分配给这个键对应值 yi的注意力权重就会越大， 也就“获得了更多的注意力”。
 
 
 
@@ -315,6 +382,70 @@ XGBoost的特点，缺失值如何处理
 
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkaj9kf0dj314o04i3yz.jpg" alt="截屏2021-12-20 14.39.20" style="zoom:33%;" />
+
+
+
+
+
+**加性注意力**
+
+当查询和键是不同长度的矢量时， 我们可以使用加性注意力作为评分函数。 
+$$
+a(\mathbf{q}, \mathbf{k})=\mathbf{w}_{v}^{\top} \tanh \left(\mathbf{W}_{q} \mathbf{q}+\mathbf{W}_{k} \mathbf{k}\right) \in \mathbb{R}
+$$
+将查询和键连结起来后输入到一个多层感知机（MLP）中， 感知机包含一个隐藏层，其隐藏单元数是一个超参数h。 通过使用tanh作为激活函数，并且禁用偏置项。
+
+
+
+**缩放点注意力**
+
+点积操作要求查询和键具有相同的长度
+$$
+a(\mathbf{q}, \mathbf{k})=\mathbf{q}^{\top} \mathbf{k} / \sqrt{d}
+$$
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkbfadektj31vg0aiach.jpg" alt="截屏2021-12-20 15.10.09" style="zoom:50%;" />
+
+
+
+#### 多头注意力
+
+https://zh-v2.d2l.ai/chapter_attention-mechanisms/multihead-attention.html
+
+当给定相同的查询、键和值的集合时， 我们希望模型可以**基于相同的注意力机制学习到不同的行为**， 然后将不同的行为作为知识组合起来， 捕获序列内各种范围的依赖关系 （例如，短距离依赖和长距离依赖关系）。 因此，允许注意力机制组合使用查询、键和值的不同 *子空间表示*（representation subspaces）可能是有益的。
+
+（即，对同一key，value，query，希望抽取不同的信息； 多头注意力使用 h 个独立的注意力池化）
+
+
+
+用独立学习得到的 h 组不同的 *线性投影*（linear projections）来变换查询、键和值。 然后，这 h 组变换后的查询、键和值将并行地送到注意力汇聚中。 最后，将这 h个注意力汇聚的输出拼接在一起， 并且通过另一个可以学习的线性投影进行变换， 以产生最终输出。 这种设计被称为*多头注意力*（multihead attention）
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkbjtn1r3j30ws0jmjsy.jpg" alt="截屏2021-12-20 15.14.31" style="zoom:50%;" />
+
+
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkbln7ewmj31hk0ii0we.jpg" alt="截屏2021-12-20 15.16.13" style="zoom:50%;" />
+
+基于这种设计，每个头都可能会关注输入的不同部分， 可以表示比简单加权平均值更复杂的函数。
+
+
+
+
+
+#### 自注意力
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkcpbx3orj31by06y0tk.jpg" alt="截屏2021-12-20 15.54.24" style="zoom:50%;" />
+
+
+
+**对于输入序列中的每一个词，都作为一个query，key，value。来对序列抽取特征得到输出序列。**
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkcr44qi9j31ak0mgju7.jpg" alt="image-20211220155610133" style="zoom: 33%;" />
+
+
+
+#### 位置编码
+
+
 
 
 
