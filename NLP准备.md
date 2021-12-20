@@ -4,27 +4,95 @@
 
 ## 模型
 
-### Word2vec
+### word2vec
+
+简介
+
+它将每个词映射到一个固定长度的向量，这些向量能更好地表达不同**词之间的相似性和类比关系**。（使得语义相似的单词在嵌入式空间中的距离很近）
+
+word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder 形式的表示降维到 word2vec 形式的表示。
+
+
+
+#### 实施过程
+
+https://www.cnblogs.com/zhangyang520/p/10969975.html
+
+
+
+#### skip-gram
+
+跳元模型假设**一个词**可以用来在文本序列中**生成其周围的单词**
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxksw8th39j31iy0icq4d.jpg" alt="截屏2021-12-21 01.14.36" style="zoom:33%;" />
+
+**跳元模型考虑了在给定中心词的情况下生成周围上下文词的条件概率。**
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkswol66nj31n60bkn00.jpg" alt="截屏2021-12-21 01.15.04" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxksyecyjnj31n00eimzu.jpg" alt="截屏2021-12-21 01.16.42" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxksyxl4r6j31be0u0wjb.jpg" alt="截屏2021-12-21 01.17.08" style="zoom: 67%;" />
+
+对词典中索引为 i 的词进行训练后，得到 vi（作为中心词）和 ui（作为上下文词）两个词向量。在自然语言处理应用中，**跳元模型的中心词向量通常用作词表示。**
+
+
+
+Skip-gram处理步骤：
+
+1. 确定窗口大小window，对每个词生成2*window个训练样本，(i, i-window)，(i, i-window+1)，...，(i, i+window-1)，(i, i+window)
+
+2. 确定batch_size，注意batch_size的大小必须是2*window的整数倍，这确保每个batch包含了一个词汇对应的所有样本
+
+3. 训练算法有两种：层次Softmax和Negative Sampling
+
+4. 神经网络迭代训练一定次数，得到输入层到隐藏层的参数矩阵，矩阵中每一行的转置即是对应词的词向量
+
+
+
+
+
+
+
+
+
+#### CBOW
+
+连续词袋模型假设**中心词**是基于其在文本序列中的**周围上下文词生成的**
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkt163k6fj31260igdgt.jpg" alt="截屏2021-12-21 01.19.22" style="zoom:50%;" />
+
+连续词袋模型考虑了给定周围上下文词生成中心词条件概率
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkt29is9wj31l60u00z6.jpg" alt="截屏2021-12-21 01.20.25" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkt2uilacj31ny0req7u.jpg" alt="截屏2021-12-21 01.20.56" style="zoom:50%;" />
+
+
+
+CBOW的处理步骤：
+
+1. 确定窗口大小window，对每个词生成2*window个训练样本，(i-window, i)，(i-window+1, i)，...，(i+window-1, i)，(i+window, i)
+
+2. 确定batch_size，注意batch_size的大小必须是2*window的整数倍，这确保每个batch包含了一个词汇对应的所有样本
+
+3. 训练算法有两种：层次Softmax和Negative Sampling
+
+4. 神经网络迭代训练一定次数，得到输入层到隐藏层的参数矩阵，矩阵中每一行的转置即是对应词的词向量
+
+
 
 ### 两种优化方法：分层softmax、负采样
 
-#### 简介
-
-https://zhuanlan.zhihu.com/p/26306795
-
-Word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder 形式的表示降维到 Word2vec 形式的表示。
 
 
+由于softmax操作的性质，上下文词可以是词表V中的任意项。
 
-当模型训练完后，最后得到的其实是**神经网络的权重**，比如现在输入一个 x 的 one-hot encoder: [1,0,0,…,0]，则在输入层到隐含层的权重里，只有对应 1 这个位置的权重被激活，这些权重的个数，跟隐含层节点数是一致的，从而这些权重组成一个向量 vx 来表示x，而因为每个词语的 one-hot encoder 里面 1 的位置是不同的，所以，这个向量 vx 就可以用来唯一表示 x。
+计算log条件概率时，包含与整个词表大小一样多的项的求和，而在一个词典上（通常有几十万或数百万个单词）求和的梯度的计算成本是巨大的。
 
 
 
-------
-
-对于这些模型，每个单词存在两类向量表达：输入向量![[公式]](https://www.zhihu.com/equation?tex=v_%7Bw%7D%5E%7B%7D)，输出向量![[公式]](https://www.zhihu.com/equation?tex=v_%7Bw%7D%5E%7B%27%7D)（这也是为什么word2vec的名称由来：1个单词对应2个向量表示）。学习得到输入向量比较简单；但要学习输出向量是很困难的。为了更新![[公式]](https://www.zhihu.com/equation?tex=v_%7Bw%7D%5E%7B%27%7D)，在每次训练中，我们必须遍历词汇表中的每个单词![[公式]](https://www.zhihu.com/equation?tex=w_%7Bj%7D%5E%7B%7D)，从而计算得到 ![[公式]](https://www.zhihu.com/equation?tex=u_%7Bj%7D%5E%7B%7D)，预测概率![[公式]](https://www.zhihu.com/equation?tex=y_%7Bj%7D%5E%7B%7D)（skip-gram为![[公式]](https://www.zhihu.com/equation?tex=y_%7Bc%2Cj%7D%5E%7B%7D)），它们的预测误差![[公式]](https://www.zhihu.com/equation?tex=e_%7Bj%7D%5E%7B%7D)，（skip-gram为![[公式]](https://www.zhihu.com/equation?tex=EI_%7Bj%7D%5E%7B%7D)），然后再用误测误差来更新输出向量![[公式]](https://www.zhihu.com/equation?tex=v_%7Bj%7D%5E%7B%27%7D)。
-
-对每个训练过程做如此庞大的计算是非常昂贵的，使得它难以扩展到词汇表或者训练样本很大的任务中去。为了解决这个问题，我们直观的想法就是**限制每次必须更新的输出向量的数量**。一种有效的手段就是采用**分层softmax**；另一种可行的方法是通过**负采样**。
+为了解决这个问题，我们直观的想法就是**限制每次必须更新的输出向量的数量**。一种有效的手段就是采用**分层softmax**；另一种可行的方法是通过**负采样**。
 
 
 
@@ -32,19 +100,29 @@ Word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder �
 
 本质是把 N 分类问题变成 log(N)次二分类
 
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkteq0ab1j311w0lyjta.jpg" alt="截屏2021-12-21 01.32.23" style="zoom:50%;" />
+
 用二叉树来表示词汇表中的所有单词。V个单词必须存储于二叉树的叶子单元。可以被证明一共有V-1个内单元。对于每个叶子节点，有一条唯一的路径可以从根节点到达该叶子节点；该路径被用来计算该叶子结点所代表的单词的概率。
 
-分层softmax模型**没有单词的输出向量**，取而代之的是， ![[公式]](https://www.zhihu.com/equation?tex=V-1) 中每个隐节点都有一个输出向量 ![[公式]](https://www.zhihu.com/equation?tex=v_%7Bn%28w%2Cj%29%7D%5E%7B%27%7D) 。一个单词作为输出词的概率被定义为：
+一个单词作为输出词的概率被定义为：
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxd7egmc5zj3164062mxf.jpg" alt="截屏2021-12-14 11.31.58" style="zoom: 33%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxktgw6r8sj31d00b6gnz.jpg" alt="截屏2021-12-21 01.34.27" style="zoom:50%;" />
 
-从根节点出发到叶子结点的随机路径。在每个隐节点（包含根节点），我们需要分配往左走或往右走的概率。它是由隐节点向量和隐藏层输出值（ ![[公式]](https://www.zhihu.com/equation?tex=h) ，也就是输入单词的向量表示)共同决定。
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxktj7mqutj31q20foadc.jpg" alt="截屏2021-12-21 01.36.39" style="zoom:40%;" />
+
+
+
+从根节点出发到叶子结点的随机路径。在每个隐节点（包含根节点），我们需要分配往左走或往右走的概率。
 
 训练模型的计算复杂度从 ![[公式]](https://www.zhihu.com/equation?tex=O%28V%29) 降至 ![[公式]](https://www.zhihu.com/equation?tex=O%28logV%29) ，这在效率上是一个巨大的提升。而且我们仍然有差不多同样的模型参数（原始模型： ![[公式]](https://www.zhihu.com/equation?tex=V) 个单词的输出向量，分层softmax： ![[公式]](https://www.zhihu.com/equation?tex=V-1) 个隐节点的输出向量)。
 
 
 
 #### negative sampling
+
+```
+Negative Sampling是对于给定的词,并生成其负采样词集合的一种策略,已知有一个词,这个词可以看做一个正例,而它的上下文词集可以看做是负例,但是负例的样本太多,而在语料库中,各个词出现的频率是不一样的,所以在采样时可以要求高频词选中的概率较大,低频词选中的概率较小,这样就转化为一个带权采样问题,大幅度提高了模型的性能。
+```
 
 本质是预测总体类别的一个子集
 
@@ -56,19 +134,25 @@ Word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder �
 
 ![[公式]](https://www.zhihu.com/equation?tex=P_%7Bn%7D%28w%29) 中采样得到的单词集合，也就是负样本。![[公式]](https://www.zhihu.com/equation?tex=t_%7Bj%7D)是单词![[公式]](https://www.zhihu.com/equation?tex=w_%7Bj%7D)的标签。t=1时， ![[公式]](https://www.zhihu.com/equation?tex=w_%7Bj%7D)是正样本；t=0时，![[公式]](https://www.zhihu.com/equation?tex=w_%7Bj%7D)为负样本。
 
-只需要将此公式作用于 ![[公式]](https://www.zhihu.com/equation?tex=w_%7Bj%7D%5Cin%5Cleft%5C%7B+w_%7BO%7D+%5Cright%5C%7D%5Ccup+W_%7Bneg%7D) 而不用更新词汇表的所有单词。这也解释了为什们我们可以在一次迭代中节省巨大的计算量。
+只需要将此公式作用于 ![[公式]](https://www.zhihu.com/equation?tex=w_%7Bj%7D%5Cin%5Cleft%5C%7B+w_%7BO%7D+%5Cright%5C%7D%5Ccup+W_%7Bneg%7D) 而不用更新词汇表的所有单词。这也解释了为什么我们可以在一次迭代中节省巨大的计算量。
 
 
 
 相关公式：
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxd7yfxhgzj314g07ijrj.jpg" alt="截屏2021-12-14 11.51.10" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxktumsdraj31be0k0772.jpg" alt="截屏2021-12-21 01.47.40" style="zoom:50%;" />
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxd7yvbhzbj313c0fk0tv.jpg" alt="截屏2021-12-14 11.51.35" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxktv79628j31bk0jmtcx.jpg" alt="截屏2021-12-21 01.48.13" style="zoom:50%;" />
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxd81lkuphj313o09g74v.jpg" alt="截屏2021-12-14 11.54.12" style="zoom:50%;" />
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxktve8qqfj31bg0hytbr.jpg" alt="截屏2021-12-21 01.48.26" style="zoom:50%;" />
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxd82koogxj313a0bqaap.jpg" alt="截屏2021-12-14 11.55.10" style="zoom: 33%;" />
+
+
+负采样通过考虑相互独立的事件来构造损失函数，这些事件同时涉及正例和负例。训练的计算量与每一步的噪声词数成线性关系。
+
+
+
+
 
 ### Seq2Seq
 
@@ -461,6 +545,10 @@ https://zh-v2.d2l.ai/chapter_attention-mechanisms/multihead-attention.html
 
 ## 一般提问
 
+https://blog.csdn.net/GreatXiang888/article/details/99296607
+
+
+
 ### 过拟合解决方式
 
 1. 获取更多数据（源头获取、数据增强）。让模型「看见」尽可能多的「例外情况」，它就会不断修正自己，从而得到更好的结果。
@@ -525,6 +613,21 @@ BatchNorm就是通过对batch size这个维度归一化来让分布稳定下来�
 
 
 
+### 梯度消失和梯度爆炸？改进方法。
+
+解决梯度爆炸：
+
+- 可以通过梯度截断。通过添加正则项。
+
+解决梯度消失：
+
+- 将RNN改掉，使用LSTM等自循环和门控制机制。
+- 优化激活函数，如将sigmold改为relu
+- 使用batchnorm
+- 使用残差结构
+
+
+
 
 
 ### 数据不平衡怎么处理
@@ -583,6 +686,94 @@ TF-IDF的主要思想是：如果某个单词在一篇文章中出现的频率TF
 $$
 F1 = \frac{2PR}{P+R}
 $$
+
+### softmax
+
+**softmax用于多分类过程中**，它将多个神经元的输出，映射到（0,1）区间内
+
+softmax函数将未规范化的预测变换为非负并且总和为1，同时要求模型保持可导。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkrkem764j30og04qmxa.jpg" alt="截屏2021-12-21 00.28.39" style="zoom:50%;" />
+
+
+
+**softmax的一个小缺陷：上溢和下溢**
+
+当x=[10000,5000,2000]的时候，$exp(10000)$超过了计算机所能存储的最大范围，就会发生溢出。当x=[-10000,-1000,-34343]的时候，分母很小很小，基本为0，导致计算结果为nan.
+
+解决方法：将原数组变成x-max(x)
+
+
+
+**softmax的缺点：计算复杂度高**
+
+考虑负采样和分层softmax
+
+
+
+### sigmoid
+
+$$
+f(z)=\frac{1}{1+e^{-z}}
+$$
+
+它能够把输入的连续实值变换为0和1之间的输出，特别的，如果是非常大的负数，那么输出就是0；如果是非常大的正数，输出就是1.
+
+
+
+**缺点**
+
+1. 容易导致梯度消失。每传递一层梯度值都会减小为原来的0.25倍，如果神经网络隐藏层很多，那么梯度在穿过多层后悔变得接近0，即出现梯度消失现象。
+
+   > 这里引申出**反向传播**的概念：简要地说，BP算法是一个迭代算法，它的基本思想为：（1）先计算每一层的状态和激活值，直到最后一层（即信号是前向传播的）；（2）计算每一层的误差，误差的计算过程是从最后一层向前推进的（这就是反向传播算法名字的由来）；（3）更新参数（目标是误差变小）。求解梯度用链导法则。迭代前面两个步骤，直到满足停止准则（比如相邻两次迭代的误差的差别很小）。
+
+   **改进**：1、LSTM可以解决梯度消失问题 2、Batchnorm 3、优化激活函数，使用relu 4、使用残差结构
+
+2. 函数输出不是0均值（zero-centered）
+
+   sigmoid 函数的输出均大于 0，使得输出不是 0 均值，这称为偏移现象，这会导致后一层的神经元将得到上一层输出的非 0 均值的信号作为输入。
+
+   **改进**：**数据规范化（normalization）如Layer-Normalization Batch-Normalization等**
+
+3. 解析式中含有幂运算：幂运算对计算机来讲比较耗时，对于规模比较大的深度网络，这会较大地增加训练时间。
+
+
+
+
+
+
+
+
+
+
+
+#### 损失函数
+
+https://zh-v2.d2l.ai/chapter_linear-networks/softmax-regression.html
+
+https://zhuanlan.zhihu.com/p/25723112
+
+https://blog.csdn.net/GreatXiang888/article/details/99293507
+
+损失函数——交叉熵损失
+
+![截屏2021-12-21 00.38.20](https://tva1.sinaimg.cn/large/008i3skNly1gxkruhf2r4j31jy07s3z2.jpg)
+
+
+
+softmax及其导数
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkrwf36zcj30te05gjrl.jpg" alt="截屏2021-12-21 00.40.12" style="zoom:50%;" />
+
+推导还是看[这个](https://blog.csdn.net/GreatXiang888/article/details/99293507)
+
+对于，（这里ai是yi对应的softmax）
+$$
+L o s s=-\sum_{i} y_{i} \ln a_{i}
+$$
+<img src="https://pic2.zhimg.com/80/v2-d3a4e22a107052ee998823b24b49db71_1440w.jpg" alt="img" style="zoom:75%;" /> <img src="https://pic3.zhimg.com/80/v2-5eafb4c0a835bc90248766ac0c123dfe_1440w.jpg" alt="img" style="zoom:75%;" />
+
+
 
 
 
