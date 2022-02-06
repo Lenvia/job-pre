@@ -666,6 +666,42 @@ $$
 
 #### Viterbi算法
 
+维特比算法(Viterbi Algorithm)是一种**动态规划算法**。
+
+Viterbi算法是用来解决：
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34nic4x5j317006iabj.jpg" alt="截屏2022-01-05 21.41.35" style="zoom:33%;" />
+
+就是说，我知道 隐状态初始化概率、隐状态转移概率、观测状态生成概率，也知道当前的观测序列。来推测这几天最可能是什么天气。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34mvevvyj318g0pkgoj.jpg" alt="截屏2022-01-05 21.40.58" style="zoom:33%;" />
+
+<font color=red>从图的角度来看，计算最优隐状态序列概率等价于计算最大路径。</font>
+$$
+P(\mathbf{x} ; \boldsymbol{\theta})=\operatorname{argmax}_{\mathbf{z}}\{P(\mathbf{x}, \mathbf{z} ; \boldsymbol{\theta})\}
+$$
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34qjgt9ej30ug0i4abq.jpg" alt="截屏2022-01-05 21.44.31" style="zoom:33%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34rgp4f8j318i0b0q5s.jpg" alt="截屏2022-01-05 21.45.23" style="zoom:33%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34rrx23rj318m0r2gov.jpg" alt="截屏2022-01-05 21.45.41" style="zoom:33%;" />
+
+**就相当于把前向概率的求和换成了最大值！**
+
+<!--因为乘的 b是一样的，所以max的作用范围只是大括号内部就行了-->
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34sdtcdzj318a0qq0w3.jpg" alt="截屏2022-01-05 21.46.17" style="zoom:33%;" />
+
+
+
+
+
+你前向概率都会算，那么Viterbi肯定也会算
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gy34sm8amuj31860owgpu.jpg" alt="截屏2022-01-05 21.46.30" style="zoom:33%;" />
+
+
+
 
 
 ### ⚠️条件随机场
@@ -810,9 +846,23 @@ https://zh-v2.d2l.ai/chapter_attention-mechanisms/multihead-attention.html
 
 ### Boosting
 
+https://zhuanlan.zhihu.com/p/280222403
+
 目的：将多个弱一点的模型，组合在一起变成一个比较强的模型。用来降低**偏差**。
 
-boosting按顺序学习n个模型，每一次在第时间i步的时候，训练弱模型hi，根据hi的误差进行评估，根据当前的误差，使得下一个模型hi+1会关注预测不正确的那些样本，然后一直迭代下去。
+（个体学习器间存在强依赖关系、必须串行生成的序列化方法）
+
+
+
+**Boosting 的工作机制**
+
+1. 先从初始训练集训练出一个weak learner
+2. 根据weak learner的表现对训练样本分布进行调整，使得先前的learner做错的训练样本在后续受到更多关注
+3. 基于调整后的样本分布来训练下一个weak learner。（2和3是AdaBoost的机制。GB的机制是训练weak learner预测残差）
+4. 如此反复进行，直至达到指定的数目
+5. 将T个weak learner进行加权结合。
+
+
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gyp9o089s5j31x90u00xn.jpg" alt="截屏2022-01-25 01.17.28" style="zoom: 33%;" />
 
@@ -832,19 +882,70 @@ $$
 
 
 
-GBDT 就是用决策树作为week learner（浅层，防止过拟合）
+GBDT 就是用决策树作为weak learner（浅层，防止过拟合）
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4a6ezjdrj31cg0r041r.jpg" alt="截屏2022-02-07 00.58.38" style="zoom:50%;" />
+
+**GBDT的[例子](https://zhuanlan.zhihu.com/p/280222403)**（给的例1好好看看）
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4aht55ozj31960pwgp3.jpg" alt="截屏2022-02-07 01.09.37" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4aikqwijj31dm0u0jw9.jpg" alt="截屏2022-02-07 01.10.20" style="zoom: 50%;" />
 
 
 
+#### XGBoost
+
+详见https://zhuanlan.zhihu.com/p/162001079！！！
+
+XGBoost（eXtreme Gradient Boosting）极致梯度提升，是基于GBDT的一种算法。
+
+**XGBoost 相比于 GBDT 的优化**
+
+- 利用二阶泰勒公式展开
+  - 优化损失函数，提高计算精确度
+- 利用正则项
+  - 简化模型，避免过拟合
+- 采用Blocks存储结构
+  - 可以并行计算等
 
 
-#### ⚠️XGBoost
 
-XGBoost的特点，缺失值如何处理
+XGBoost的目标函数由损失函数和正则化项两部分组成。
 
-XGBoost是怎么预防过拟合的？
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4b8ie1lqj319m0mi40t.jpg" alt="截屏2022-02-07 01.35.16" style="zoom:50%;" />
 
-和LightGBM的差别？
+用GBDT梯度提升树表达方式XGBoost。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4b8ytw87j31aa0d075e.jpg" alt="截屏2022-02-07 01.35.42" style="zoom:50%;" />
+
+接下来，三个步骤优化XGBoost目标函数。
+
+> 第一步：二阶泰勒展开，去除**常数项**，优化损失函数项；
+>
+> 第二步：正则化项展开，去除**常数项**，优化正则化项；
+>
+> 第三步：合并**一次项系数、二次项系数**，得到最终目标函数。
+
+最终得到目标函数
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4bn72praj31cs0km76z.jpg" alt="截屏2022-02-07 01.49.22" style="zoom: 40%;" />
+
+
+
+**XGBoost的特点，缺失值如何处理**
+
+https://zhuanlan.zhihu.com/p/382253128
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4bxvxh3dj313q0io0vs.jpg" alt="截屏2022-02-07 01.59.39" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4by7009sj314m0cugn8.jpg" alt="截屏2022-02-07 01.59.57" style="zoom:50%;" />
+
+
+
+**XGBoost是怎么预防过拟合的？**
+
+**和LightGBM的差别？**
 
 
 
@@ -1211,12 +1312,20 @@ https://zhuanlan.zhihu.com/p/38309692
 
 **L1正则**
 
+根据权重的绝对值的总和来惩罚权重。
+$$
+l_{1}: \Omega(w)=\|w\|_{1}=\sum_{i}\left|w_{i}\right|
+$$
 L1正则常被用来进行特征选择，主要原因在于L1正则化会使得较多的参数为0，从而产生稀疏解，我们可以将0对应的特征遗弃，进而用来选择特征。
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gz1x1xi8aaj30vg06sdgc.jpg" alt="截屏2022-02-04 23.53.25" style="zoom: 50%;" />
 
 **L2正则**
 
+根据权重的平方和来惩罚权重。
+$$
+l_{2}: \Omega(w)=\|w\|_{2}^{2}=\sum_{i}\left|w_{i}^{2}\right|
+$$
 主要用来防止模型过拟合
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gz1x2iwx86j30iu04eq2y.jpg" alt="截屏2022-02-04 23.53.59" style="zoom:50%;" />
@@ -1439,6 +1548,8 @@ https://www.zhihu.com/question/323747423
 
 #### BGD（批量梯度下降）
 
+在时间t采样一个随机子集，大小为b，算梯度时对这b个样本取平均。
+
 批量梯度下降法比标准梯度下降法训练时间短，且每次下降的方向都很正确。
 
 
@@ -1446,6 +1557,12 @@ https://www.zhihu.com/question/323747423
 #### Momentum
 
 使用动量(Momentum)的随机梯度下降法(SGD)，主要思想是引入一个积攒历史梯度信息动量来加速SGD。
+
+（$\beta$和$1-\beta$ 的应用是指数加权移动平均法）
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz3uo1n9w7j30j805y3yl.jpg" alt="截屏2022-02-06 16.01.58" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz3qb43uukj30tk0ksjt8.jpg" alt="截屏2022-02-06 13.31.09" style="zoom:33%;" />
 
 动量主要解决SGD的两个问题：
 
@@ -1455,14 +1572,55 @@ https://www.zhihu.com/question/323747423
 
 
 
-#### ⚠️Adam
+#### Nesterov
+
+既然已经走到了新的参数处，那么梯度可以用跨出一步之后的梯度，这样就能用到更多的信息。
+
+当参数向量位于某个位置 *x* 时，
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz3usy70frj31kw0q6q6p.jpg" alt="截屏2022-02-06 16.06.42" style="zoom:50%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz3usbtml0j317k0g8ab7.jpg" alt="截屏2022-02-06 16.06.07" style="zoom:50%;" />
+
+
+
+#### AdaGrad
+
+Adaptive Gradient，学习率要适当地根据每个参数的历史数据来调整。
+
+学习到的梯度是真实梯度除以梯度内积的开方。Adagrad本质是解决各方向导数数值量级的不一致而将梯度数值归一化。
+
+（这样的好处就是：如果每个参数的振荡幅度不一样，我们这样相当于做了某种归一化，使得它们在自己的范围内做基本一致的变化）
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz3v6sk3cdj30is0eiwez.jpg" alt="截屏2022-02-06 16.20.00" style="zoom:50%;" />
+
+
+
+#### RMSprop
+
+AdaGrad有一个问题：就是随着迭代进行，显然h会越来越大，所以最后更新量会变为0，为了改善这个问题，RMSprop对过去梯度进行逐步的遗忘，也就是每次都乘以一个小于1的系数，进行指数移动平均，呈指数函数式地减少过去梯度的影响。
+$$
+\begin{array}{l}
+\theta \leftarrow \theta-\frac{\alpha}{\sqrt{h}} \cdot g \\
+h \leftarrow \beta h+(1-\beta) g \odot g
+\end{array}
+$$
+通过小于1的 $\beta$ 来进行前面梯度信息的遗忘。
 
 
 
 
 
-#### ⚠️AdaGrad
+#### Adam
 
+Adam全名为Adaptive Momentum，也就是，既要Adaptive学习率，而且这个Adaptive还不是AdaGrad里那么单纯，其实用的是RMSprop里这种逐渐遗忘历史的方法，同时还要加入Momentum。
+$$
+\begin{array}{l}
+v \leftarrow \beta_{1} v+\left(1-\beta_{1}\right) g \\
+h \leftarrow \beta_{2} h+\left(1-\beta_{2}\right) g \odot g \\
+\theta \leftarrow \theta-\frac{\alpha}{\sqrt{h}} \cdot v
+\end{array}
+$$
 
 
 
