@@ -6,15 +6,13 @@
 
 ### word2vec
 
-简介
-
 它将每个词映射到一个固定长度的向量，这些向量能更好地表达不同**词之间的相似性和类比关系**。（使得语义相似的单词在嵌入式空间中的距离很近）
 
 word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder 形式的表示降维到 word2vec 形式的表示。（更低维度的向量的表示）
 
 
 
-#### 实施过程
+**实施过程**
 
 https://www.cnblogs.com/zhangyang520/p/10969975.html
 
@@ -937,15 +935,40 @@ XGBoost的目标函数由损失函数和正则化项两部分组成。
 
 https://zhuanlan.zhihu.com/p/382253128
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4bxvxh3dj313q0io0vs.jpg" alt="截屏2022-02-07 01.59.39" style="zoom:50%;" />
+https://zhuanlan.zhihu.com/p/269193235
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4by7009sj314m0cugn8.jpg" alt="截屏2022-02-07 01.59.57" style="zoom:50%;" />
+https://mp.weixin.qq.com/s/a4v9n_hUgxNyKSQ3RgDMLA
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4bxvxh3dj313q0io0vs.jpg" alt="截屏2022-02-07 01.59.39" style="zoom:40%;" />
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz4by7009sj314m0cugn8.jpg" alt="截屏2022-02-07 01.59.57" style="zoom:40%;" />
+
+说法二：
+
+- 在特征k上寻找最佳 split point 时，不会对该列特征 missing 的样本进行遍历，而只对该列特征值为 non-missing 的样本上对应的特征值进行遍历，通过这个技巧来减少了为稀疏离散特征寻找 split point 的时间开销。
+- 在逻辑实现上，为了保证完备性，会将该特征值missing的样本分别分配到左叶子结点和右叶子结点，两种情形都计算一遍后，选择分裂后增益最大的那个方向（左分支或是右分支），作为预测时特征值缺失样本的默认分支方向。
+- 如果在训练中没有缺失值而在预测中出现缺失，那么会自动将缺失值的划分方向放到右子结点。
+
+
 
 
 
 **XGBoost是怎么预防过拟合的？**
 
+XGBoost在设计时，为了防止过拟合做了很多优化，具体如下：
+
+- **目标函数添加正则项**：叶子结点个数+叶子节点权重的L2正则化
+- **列抽样**：训练的时候只用一部分特征（不考虑剩余的block块即可）
+- **子采样**：每轮计算可以不使用全部样本，使算法更加保守
+- **shrinkage**: 可以叫学习率或步长，为了给后面的训练留出更多的学习空间
+
+
+
+
+
 **和LightGBM的差别？**
+
+https://mp.weixin.qq.com/s/a4v9n_hUgxNyKSQ3RgDMLA
 
 
 
