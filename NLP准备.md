@@ -4,6 +4,10 @@
 
 注：灰色代码框内的文字为本人口语化的总结，可以直接用来回答问题。
 
+⭐️：提问频率比较高
+
+⚠️：待补充/不确定
+
 
 
 ## 模型
@@ -351,7 +355,9 @@ GRU的优点是其模型的简单性 ，因此更适用于构建较大的网络�
 
 
 
-### Transformer
+### ⭐️Transformer
+
+https://zhuanlan.zhihu.com/p/82312421
 
 https://zh-v2.d2l.ai/chapter_attention-mechanisms/transformer.html
 
@@ -374,7 +380,7 @@ Transformer是一个纯使用注意力的编码-解码器模型。
 
 Transformer是一个纯使用注意力的 编码-解码器
 
-编码器和解码器都有n个 transformer 块（base n=6）
+编码器和解码器都有n个 transformer 块
 
 每个块里使用多头注意力，基于位置的前馈网络，和层归一化。
 
@@ -545,7 +551,7 @@ https://zh-v2.d2l.ai/chapter_natural-language-processing-pretraining/bert.html
 
 ```
 介绍一下bert？
-bert是一个基于微调的预训练模型，它抽取了足够多的信息。这些抽取的特征可以复用，可以挪到别的地方去。在面对新的任务时，只需要在后面加一个简单的输出层。而不需要加什么RNN Transformer等网络。
+bert是一个基于微调的预训练模型，它抽取了足够多的信息。这些抽取的特征可以复用，可以挪到别的地方去。在面对新的任务时，只需要在后面加一个简单的输出层。
 
 bert的输入 是 单个文本或单个文本对。
 当输入为单个文本的时候，前面加cls，然后是文本序列的标记、以及特殊分隔词元sep
@@ -554,7 +560,7 @@ bert的输入 是 单个文本或单个文本对。
 输入有三个embedding
 1. token embedding: 要将各个词转换成固定维度的向量
 2. segment embedding: 使用分隔词进行拼接，然后对第一个句子id为0，第二个id为1
-3. position embedding: 让BERT在各个位置上学习一个向量表示来将序列顺序的信息编码进来。
+3. position embedding: 让BERT在各个位置上学习一个向量表示，将序列顺序的信息编码进来。
 
 bert的输出就是 对每一个词元 返回一个抽取了上下文信息的特征向量。
 
@@ -563,14 +569,13 @@ bert的输出就是 对每一个词元 返回一个抽取了上下文信息的�
 预训练任务1: 带掩码的语言模型
 Transformer编码器是双向的，语言模型要求是单向的（不能考虑它之后的词提供的信息）
 每次随机（15%）将一些词元替换成<mask>。每次去预测一下是什么。
-因为微调中没有mask，所以就不要让模型一看见mask、就去预测。
-这时候
+在选择mask的15%的词当中
 	1) 80%的概率下，将选中的词元变成<mask>
 	2) 10%的概率下，替换成随机的词元
 	3) 10%的概率下，保留原有的词元
 
 预训练任务2: 下一句子预测
-预测一个句子对中的两个句子是不是相邻
+预测一个句子对中的两个句子是不是相邻（引入这个任务可以更好地让模型学到连续的文本片段之间的关系）
 训练样本中
 	50%的概率选择相邻句子对
 	50%的概率选择随机句子对
@@ -594,7 +599,7 @@ Bert就是，预训练模型抽取了足够多的信息，足够抓住语义信�
 
 
 
-输入输出？
+**输入输出？**
 
 BERT输入序列明确地表示单个文本和文本对。
 
@@ -608,7 +613,9 @@ BERT输入序列明确地表示单个文本和文本对。
 
 - 要将各个词转换成固定维度的向量。在BERT中，每个词会被转换成768维的向量表示。
 - 加入额外的片段嵌入。 给第一个句子 id为0，第二个句子id是1
-- 位置编码可以学习。
+- 由于出现在文本不同位置的字/词所携带的语义信息存在差异，因此，BERT 模型对不同位置的字/词分别附加一个不同的向量以作区分
+
+（与Transformer本身的Encoder端相比，BERT的Transformer Encoder端输入的向量表示，多了Segment Embeddings。）
 
 
 
@@ -631,7 +638,13 @@ BERT（来自Transformers的双向编码器表示）结合了这两个方面的�
 
 **架构：**
 
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxk938f9gbj31a00oygog.jpg" alt="截屏2021-12-20 13.49.20" style="zoom: 33%;" />
+- 只有编码器的Transformer
+- 两个版本
+  - Base: #blocks = 12, hidden size = 768, #heads = 12, #parameters = 110M
+  - Large: #blocks = 24, hidden size = 1024, #heads = 16, #parameters = 340M
+- 在大规模数据上训练 > 3B 词
+
+
 
 Bert maxposition：512
 
@@ -650,7 +663,7 @@ Bert maxposition：512
 
 #### 预训练任务2：下一句子预测
 
-- 预测一个句子对中两个句子是不是相邻
+- 预测一个句子对中两个句子是不是相邻。（引入这个任务可以更好地让模型学到连续的文本片段之间的关系）
 - 训练样本中
   - 50%概率选择相邻句子对
   - 50%概率选择随机句子对
@@ -723,6 +736,112 @@ Bert 对每一个词元返回 **抽取了上下文信息的特征向量**。（�
 
 
 #### ⚠️Embedding
+
+
+
+
+
+### Bert常见问题
+
+https://mp.weixin.qq.com/s/TDoK3xdXZ6xIZsw9SFxoHQ
+
+**Bert为什么只使用了Transformer的Encoder？**
+
+那么Decoder去哪了呢？显然是被BERT改造了。Transformer其实是个完整地seq-to-seq模型，可以解决诸如机器翻译、生成式QA这种输入输出为不定长句子的任务，在Transformer中，它使用Encoder做特征提取器，然后用Decoder做解析，输出我们想要的结果。
+
+而对于BERT，它作为一个预训练模型，它使用固定的任务——language modeling来对整个模型的参数进行训练，这个language modeling的任务就是masked language model，所以它是一个用上下文去推测中心词[MASK]的任务，故和Encoder-Decoder架构无关，它的输入输出不是句子，其输入是这句话的上下文单词，输出是[MASK]的softmax后的结果，最终计算Negative Log Likelihood Loss，并在一次次迭代中以此更新参数。
+
+**所以说，BERT的预训练过程，其实就是将Transformer的Decoder拿掉，仅使用Encoder做特征抽取器，再使用抽取得到的“特征”做Masked language modeling的任务，通过这个任务进行参数的修正。**
+
+当然了，BERT不仅仅做了MLM任务，还有Next Sequence Prediction，这个由于后序验证对模型的效果提升不明显，所以没有赘述。
+
+注意：我们常说，xxx使用Transformer作为特征抽取器，这其实在说用Transformer的Encoder(主要是Self-Attention和短路连接等模块)做特征抽取器，和Decoder啥关系也没有
+
+
+
+**BERT 的输入和输出分别是什么？**
+
+BERT 模型的主要输入是文本中各个字/词(或者称为 token)的原始词向量，该向量既可以随机初始化，也可以利用 word2vec 等算法进行预训练以作为初始值；输出是文本中各个字/词融合了全文语义信息后的向量表示。
+
+模型输入除了字向量(英文中对应的是 Token Embeddings)，还包含另外两个部分：
+
+1. 文本向量(英文中对应的是 Segment Embeddings)：该向量的取值在模型训练过程中自动学习，用于刻画文本的全局语义信息，并与单字/词的语义信息相融合
+2. 位置向量(英文中对应的是 Position Embeddings)：由于出现在文本不同位置的字/词所携带的语义信息存在差异（比如：“我爱你”和“你爱我”），因此，BERT 模型对不同位置的字/词分别附加一个不同的向量以作区分
+
+最后，BERT 模型将字向量、文本向量和位置向量的加和作为模型输入。
+
+
+
+**BERT 的三个 Embedding 直接相加会对语义有影响吗？**
+
+Embedding 的数学本质，就是以 one hot 为输入的单层全连接。
+
+现在我们将 token, position, segment 三者都用 one hot 表示，然后 concat 起来，然后才去过一个单层全连接，等价的效果就是三个 Embedding 相加。
+
+因此，BERT 的三个 Embedding 相加，其实可以理解为 token, position, segment 三个用 one hot 表示的特征的 concat。Embedding 就是以 one hot 为输入的单层全连接。
+
+
+
+**BERT 的MASK方式的优缺点？**
+
+BERT的mask方式：在选择mask的15%的词当中，80%情况下使用mask掉这个词，10%情况下采用一个任意词替换，剩余10%情况下保持原词汇不变。
+
+优点：
+
+1. 被随机选择15%的词当中以10%的概率用任意词替换去预测正确的词，相当于文本纠错任务，为BERT模型赋予了一定的文本纠错能力；
+2. 被随机选择15%的词当中以10%的概率保持不变，缓解了finetune时候与预训练时候输入不匹配的问题（预训练时候输入句子当中有mask，而finetune时候输入是完整无缺的句子，即为输入不匹配问题）。
+
+缺点：
+
+针对有两个及两个以上连续字组成的词，随机mask字割裂了连续字之间的相关性，使模型不太容易学习到词的语义信息。
+
+
+
+**BERT深度双向的特点，双向体现在哪儿？**
+
+BERT的预训练模型中，预训练任务是一个mask LM ，通过随机的把句子中的单词替换成mask标签， 然后对单词进行预测。
+
+这里注意到，对于模型，输入的是一个被挖了空的句子， 而由于Transformer的特性（Self-attention机制）， 它是会注意到所有的单词的，这就导致模型会根据挖空的上下文来进行预测， 这就实现了双向表示， 说明BERT是一个双向的语言模型。
+
+
+
+**BERT深度双向的特点，深度体现在哪儿？**
+
+针对特征提取器，Transformer只用了self-attention，没有使用RNN、CNN，并且**使用了残差连接有效防止了梯度消失的问题**，使之可以构建更深层的网络，所以BERT构建了多层深度Transformer来提高模型性能。
+
+模型中的ADD即为残差相加，思路与CV的残差网络相同，使用残差可以使得模型做的很深。
+
+
+
+**BERT中并行计算体现在哪儿？**
+
+不同于RNN计算当前词的特征要依赖于前文计算，有时序这个概念，是按照时序计算的，而BERT的Transformer-encoder中的self-attention计算当前词的特征时候，没有时序这个概念，是同时利用上下文信息来计算的，一句话的token特征是通过矩阵并行‘瞬间’完成运算的，故，并行就体现在self-attention。
+
+
+
+**BERT中Transformer中的Q、K、V存在的意义？**
+
+在使用self-attention通过上下文词语计算当前词特征的时候，X先通过$W_Q、W_K、W_V$线性变换为QKV，然后使用QK计算得分，最后与V计算加权和而得。
+
+倘若不变换为QKV，直接使用每个token的向量表示点积计算重要性得分，那在softmax后的加权平均中，该词本身所占的比重将会是最大的，使得其他词的比重很少，无法有效利用上下文信息来增强当前词的语义表示。而变换为QKV再进行计算，能有效利用上下文信息，很大程度上减轻上述的影响。
+
+**BERT中的注意力计算方式是点乘**
+
+<img src="https://mmbiz.qpic.cn/mmbiz_png/HIKk7OFDjoTOKcjqp0Dh8BlibvG8WbJehicJjfN7NSoUrib3ibTcDnC8vZ9Dfp8qCE6Ciciau4ts6iaex9JjzI4yByl0g/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1" alt="图片" style="zoom:50%;" />
+
+
+
+⚠️⚠️**BERT中Transformer中Self-attention后为什么要加前馈网络？**
+
+<u>由于self-attention中的计算都是线性了，为了提高模型的非线性拟合能力，需要在其后接上前馈网络？？？？？？</u>（存疑）
+
+<u>前馈网络不也是线性的吗？？</u>
+
+（前馈网络是两个线性变换+一个relu）
+$$
+F F N(x)=\max \left(0, x W_{1}+b_{1}\right) W_{2}+b_{2}
+$$
+
 
 
 
@@ -1404,21 +1523,7 @@ beam search尝试在广度优先基础上进行进行搜索空间的优化（类
 
 
 
-### Bert为什么只使用了Transformer的Encoder
 
-那么Decoder去哪了呢？显然是被BERT改造了。Transformer其实是个完整地seq-to-seq模型，可以解决诸如机器翻译、生成式QA这种输入输出为不定长句子的任务，在Transformer中，它使用Encoder做特征提取器，然后用Decoder做解析，输出我们想要的结果。
-
-而对于BERT，它作为一个预训练模型，它使用固定的任务——language modeling来对整个模型的参数进行训练，这个language modeling的任务就是masked language model，所以它是一个用上下文去推测中心词[MASK]的任务，故和Encoder-Decoder架构无关，它的输入输出不是句子，其输入是这句话的上下文单词，输出是[MASK]的softmax后的结果，最终计算Negative Log Likelihood Loss，并在一次次迭代中以此更新参数。
-
-**所以说，BERT的预训练过程，其实就是将Transformer的Decoder拿掉，仅使用Encoder做特征抽取器，再使用抽取得到的“特征”做Masked language modeling的任务，通过这个任务进行参数的修正。**
-
-当然了，BERT不仅仅做了MLM任务，还有Next Sequence Prediction，这个由于后序验证对模型的效果提升不明显，所以没有赘述。
-
-注意：我们常说，xxx使用Transformer作为特征抽取器，这其实在说用Transformer的Encoder(主要是Self-Attention和短路连接等模块)做特征抽取器，和Decoder啥关系也没有
-
-
-
-### 数据集分成几份，每份的作用是什么
 
 
 
@@ -1844,10 +1949,6 @@ $$
 
 
 
-## 项目
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNly1gxcq1xm58ej30tk0vwacu.jpg" alt="image-20211214013147436" style="zoom:50%;" />
-
 
 
 
@@ -1874,7 +1975,4 @@ $$
 
 
 
-
-
-## 暂未归类
 
