@@ -357,7 +357,7 @@ GRU的优点是其模型的简单性 ，因此更适用于构建较大的网络�
 
 ### ⭐️Transformer
 
-https://zhuanlan.zhihu.com/p/82312421
+**https://zhuanlan.zhihu.com/p/82312421**（Transformer的剖析，建议看）
 
 https://zh-v2.d2l.ai/chapter_attention-mechanisms/transformer.html
 
@@ -380,7 +380,7 @@ Transformer是一个纯使用注意力的编码-解码器模型。
 
 Transformer是一个纯使用注意力的 编码-解码器
 
-编码器和解码器都有n个 transformer 块
+编码器和解码器都有n个 transformer 块（一般为6个）
 
 每个块里使用多头注意力，基于位置的前馈网络，和层归一化。
 
@@ -741,7 +741,7 @@ Bert 对每一个词元返回 **抽取了上下文信息的特征向量**。（�
 
 
 
-### Bert常见问题
+#### Bert常见问题
 
 https://mp.weixin.qq.com/s/TDoK3xdXZ6xIZsw9SFxoHQ
 
@@ -831,16 +831,31 @@ BERT的预训练模型中，预训练任务是一个mask LM ，通过随机的�
 
 
 
-⚠️⚠️**BERT中Transformer中Self-attention后为什么要加前馈网络？**
+❌**BERT中Transformer中Self-attention后为什么要加前馈网络？**
 
-<u>由于self-attention中的计算都是线性了，为了提高模型的非线性拟合能力，需要在其后接上前馈网络？？？？？？</u>（存疑）
+<u>由于self-attention中的计算都是线性了，为了提高模型的非线性拟合能力，需要在其后接上前馈网络？？？？？？</u>（存疑⚠️）
 
-<u>前馈网络不也是线性的吗？？</u>
+<u>前馈网络不也是线性的吗？？另外attention不是有softmax吗咋是线性的？？</u>
 
 （前馈网络是两个线性变换+一个relu）
 $$
 F F N(x)=\max \left(0, x W_{1}+b_{1}\right) W_{2}+b_{2}
 $$
+
+
+
+**BERT的优缺点**
+
+优点：
+
+并行，解决长时依赖，双向特征表示，特征提取能力强，有效捕获上下文的全局信息，缓解梯度消失的问题等，BERT擅长解决的NLU任务。
+
+缺点：
+
+- 生成任务表现不佳：预训练过程和生成过程的不一致，导致在生成任务上效果不佳；
+- 采取独立性假设：没有考虑预测[MASK]之间的相关性，是对语言模型联合概率的有偏估计（不是密度估计）；
+- 输入噪声[MASK]，造成预训练-微调两阶段之间的差异；
+- 无法文档级别的NLP任务，只适合于句子和段落级别的任务；
 
 
 
@@ -1972,7 +1987,6 @@ $$
 
 
 ## 有什么要问的吗
-
 
 
 
