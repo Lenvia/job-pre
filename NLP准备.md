@@ -549,6 +549,8 @@ BERT和transformer的目标不一致，bert是语言的预训练模型，需要�
 
 https://zh-v2.d2l.ai/chapter_natural-language-processing-pretraining/bert.html
 
+https://zhuanlan.zhihu.com/p/46652512
+
 ```
 介绍一下bert？
 bert是一个基于微调的预训练模型，它抽取了足够多的信息。这些抽取的特征可以复用，可以挪到别的地方去。在面对新的任务时，只需要在后面加一个简单的输出层。
@@ -612,8 +614,8 @@ BERT输入序列明确地表示单个文本和文本对。
 三个embedding： **Token Enbedding, Segment Embedding, Position embedding**
 
 - 要将各个词转换成固定维度的向量。在BERT中，每个词会被转换成768维的向量表示。
-- 加入额外的片段嵌入。 给第一个句子 id为0，第二个句子id是1
-- 由于出现在文本不同位置的字/词所携带的语义信息存在差异，因此，BERT 模型对不同位置的字/词分别附加一个不同的向量以作区分
+- Segment Embedding 用来区别两种句子。 给第一个句子 id为0，第二个句子id是1
+- 由于出现在文本不同位置的字/词所携带的语义信息存在差异，因此，BERT 模型对不同位置的字/词分别附加一个不同的向量以作区分。**Position Embeddings和之前文章中的Transformer不一样，不是三角函数而是学习出来的**
 
 （与Transformer本身的Encoder端相比，BERT的Transformer Encoder端输入的向量表示，多了Segment Embeddings。）
 
@@ -625,7 +627,7 @@ BERT输入序列明确地表示单个文本和文本对。
 
 
 
-**特点**
+**特点：**
 
 1. 从上下文无关到上下文敏感
 2. 从特定任务到不可知任务
@@ -633,6 +635,15 @@ BERT输入序列明确地表示单个文本和文本对。
 ELMo对上下文进行双向编码，但使用特定于任务的架构；而GPT是任务无关的，但是从左到右编码上下文。
 
 BERT（来自Transformers的双向编码器表示）结合了这两个方面的优点。它对上下文进行双向编码，并且对于大多数的NLP任务只需要最少的架构改变。通过使用预训练的Transformer编码器，BERT能够基于其双向上下文表示任何词元。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9zxvsjhgj315g0acdhy.jpg" alt="截屏2022-02-11 23.37.50" style="zoom:50%;" />
+
+缺点：
+
+- [MASK]标记在实际预测中不会出现，训练时用过多[MASK]影响模型表现
+- 每个batch只有15%的token被预测，所以BERT收敛得比left-to-right模型要慢（它们会预测每个token）
+
+
 
 
 
@@ -656,10 +667,14 @@ Bert maxposition：512
 
 - Transformer的编码器是双向的，标准语言模型要求单向（不能考虑它之后的词的信息）。
 - 每次随机（15%）将一些词元换成\<mask>。每次去预测一下是什么
-- 因为微调任务中没有\<mask> （不要让模型看见mask就去预测）
+- 因为微调任务中没有\<mask>【如果一直用标记[MASK]代替（在实际预测时是碰不到这个标记的）会影响模型】
   - 80%概率下，将选中的词元变成\<mask>
   - 10%概率换成一个随机词元
   - 10%概率保持原有的词元
+
+**最终的损失函数只计算被mask掉那个token。**
+
+
 
 #### 预训练任务2：下一句子预测
 
