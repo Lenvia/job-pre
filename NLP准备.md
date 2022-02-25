@@ -16,7 +16,9 @@
 
 它将每个词映射到一个固定长度的向量，这些向量能更好地表达不同**词之间的相似性和类比关系**。（使得语义相似的单词在嵌入式空间中的距离很近）
 
-word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder 形式的表示降维到更低维度的向量的表示
+word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder 形式的表示降维到更低维度的向量的表示。
+
+<!--神经网络迭代训练一定次数，得到**输入层到隐藏层的参数矩阵**，矩阵中每一行的转置即是对应词的词向量-->
 
 
 
@@ -30,9 +32,11 @@ https://www.cnblogs.com/zhangyang520/p/10969975.html
 
 跳元模型假设**一个词**可以用来在文本序列中**生成其周围的单词**
 
+**跳元模型考虑了在给定中心词的情况下生成周围上下文词的条件概率。**
+
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxksw8th39j31iy0icq4d.jpg" alt="截屏2021-12-21 01.14.36" style="zoom:33%;" />
 
-**跳元模型考虑了在给定中心词的情况下生成周围上下文词的条件概率。**
+
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkswol66nj31n60bkn00.jpg" alt="截屏2021-12-21 01.15.04" style="zoom:50%;" />
 
@@ -52,11 +56,7 @@ https://www.cnblogs.com/zhangyang520/p/10969975.html
 
 3. 训练算法有两种：层次Softmax和Negative Sampling
 
-4. 神经网络迭代训练一定次数，得到输入层到隐藏层的参数矩阵，矩阵中每一行的转置即是对应词的词向量
-
-
-
-
+4. 神经网络迭代训练一定次数，得到**输入层到隐藏层的参数矩阵**，矩阵中每一行的转置即是对应词的词向量
 
 
 
@@ -107,6 +107,8 @@ https://www.cnblogs.com/zhangyang520/p/10969975.html
 分层softmax就是把词表的单词放在叶子结点上，每个叶子节点生成词的概率可以通过从根节点到叶子结点的唯一路径进行计算，就是每次向左和向右走的概率。
 这样只需经过logV次向量内积运算，模型复杂度从V降到了logV
 ```
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gzcf2hxcemj30yu044weq.jpg" alt="截屏2022-02-14 01.52.21" style="zoom:50%;" />
 
 本质是把 N 分类问题变成 log(N)次二分类
 
@@ -274,6 +276,10 @@ n元语法模型中，一个单词x在时间t步下的条件概率仅取决于�
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxlde8fxenj319e0psmzx.jpg" alt="截屏2021-12-21 12.58.36" style="zoom:50%;" />
 
+眼熟这两个式子！！！
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gzcf9n2p3oj30s406cq3b.jpg" alt="截屏2022-02-14 01.59.15" style="zoom: 33%;" />
+
 ```
 GRU有两个门，一个是重置门，一个是更新门。
 它们都是由上一时刻的隐状态和当前时刻的输入计算得到的。
@@ -305,6 +311,10 @@ GRU有两个门，一个是重置门，一个是更新门。
 ### LSTM
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxldvykp7dj319y0oi775.jpg" alt="截屏2021-12-21 13.19.42" style="zoom:50%;" />
+
+眼熟这两个式子！！！
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gzcfbduuhzj30ho0523yl.jpg" alt="截屏2022-02-14 02.00.56" style="zoom:33%;" />
 
 ```
 LSTM有一个记忆单元还有三个门，分别是遗忘门，输入门和输出门。
@@ -412,6 +422,12 @@ https://zhuanlan.zhihu.com/p/360144789
 
 
 
+**为什么在进行多头注意力的时候需要对每个head进行降维？**
+
+在**不增加时间复杂度**的情况下，同时，借鉴**CNN多核**的思想，在**更低的维度**，在**多个独立的特征空间**，**更容易**学习到更丰富的特征信息。
+
+
+
 **Transformer为什么Q和K使用不同的权重矩阵生成，为何不能使用同一个值进行自身的点乘？**
 
 https://www.zhihu.com/question/319339652
@@ -428,6 +444,12 @@ Q和K的点乘是为了得到一个attention score 矩阵，用来对V进行提�
 
 **为什么在进行softmax之前需要对attention进行scaled（为什么除以dk的平方根），并使用公式推导进行讲解**
 
+https://blog.csdn.net/qq_37430422/article/details/105042303
+
+两个向量的内积均值为 0，而方差为$d_k$。当 $d_k$ 较大时，向量内积容易取很大的值。
+
+**方差较大，不同的 key 与同一个 query 算出的对齐分数可能会相差很大，有的远大于 0，有的则远小于 0.**
+
 在输入数量较大时，softmax将几乎全部的概率分布都分配给了最大值对应的标签。也就是说**极大的点积值**将整个 softmax 推向**梯度平缓区**，使得收敛困难，梯度消失为0，造成参数更新困难。
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gz7dvmrra6j30n403mq2y.jpg" alt="截屏2022-02-09 17.23.20" style="zoom:50%;" />
@@ -441,10 +463,6 @@ Q和K的点乘是为了得到一个attention score 矩阵，用来对V进行提�
 如果padding 都是0，e0=1, 但是softmax的函数，也会导致为padding的值占全局一定概率，mask就是让这部分值取负无穷，让它再softmax之后基本也为0，不影响attention score的分布
 
 
-
-**为什么在进行多头注意力的时候需要对每个head进行降维？**
-
-在**不增加时间复杂度**的情况下，同时，借鉴**CNN多核**的思想，在**更低的维度**，在**多个独立的特征空间**，**更容易**学习到更丰富的特征信息。
 
 
 
@@ -787,7 +805,9 @@ BERT 模型的主要输入是文本中各个字/词(或者称为 token)的原始
 
 
 
-**BERT 的三个 Embedding 直接相加会对语义有影响吗？**
+⚠️**BERT 的三个 Embedding 直接相加会对语义有影响吗？**
+
+https://www.zhihu.com/question/374835153
 
 Embedding 的数学本质，就是以 one hot 为输入的单层全连接。
 
@@ -863,7 +883,10 @@ $$
 
 优点：
 
-并行，解决长时依赖，双向特征表示，特征提取能力强，有效捕获上下文的全局信息，缓解梯度消失的问题等，BERT擅长解决的NLU任务。
+- 并行
+- 解决长时依赖
+- 双向特征表示，特征提取能力强，有效捕获上下文的全局信息
+- 缓解梯度消失的问题等，BERT擅长解决的NLU任务。
 
 缺点：
 
@@ -875,6 +898,108 @@ $$
 
 
 
+
+### 基于Bert的改进模型
+
+https://zhuanlan.zhihu.com/p/444588460
+
+https://blog.csdn.net/qq_38556984/article/details/107501414
+
+（albert，roberta， electra做了什么改进）
+
+
+
+#### RoBERTa
+
+RoBERTa并没有去更改BERT的网络结构，只是修改了一些预训练时的方法，其中包括：动态掩码（Dynamic Masking）、舍弃NSP（Next Sentence Predict）任务。
+
+
+
+**动态掩码技术（Dynamic Masking）**
+
+原始BERT中，训练数据集中的[MASK]位置是预先就生成好的，但RoBERTa中，[MASK]的位置是在模型训练的时候实时计算决定的。这样的好处在于，无论你训练多少个Epoch，都能极大程度上避免训练数据的重复，如果只使用一份静态数据的话，每个Epoch训练的数据都是一样的（[MASK]的位置也是一样的）。
+
+
+
+**舍弃了NSP任务**
+
+原始BERT的预训练过程中，有一个阶段会使用「文本对」作为输入，让模型判断这两个文本段是否为前后文关系，该任务被称为NSP（Next Sentence Predict）任务。但是RoBERTa的实验结论却指出，在预训练过程中去掉这个NSP任务效果反而会更好。
+
+> 之前在网上有看到过一个听起来比较合理的解释：BERT在选择NSP样本时，正样本是同一篇文章中的连续段落；负样本是不同文章的两个段落。这样就会造成模型不仅会关注句子的连通性，同样还会关注句子的主题（topic）。而不同文章下的句子大部分描述的主题都是相差很大的，因此模型很容易更倾向于依赖主题来完成任务，而没有真正的学习到句子之间的**连通性**。
+
+训练序列更长。RoBERTa去除了NSP，而是每次输入连续的多个句子，直到最大长度512（可以跨文章）
+
+
+
+**使用更大的数据集，更长的训练步数**
+
+RoBERTa使用数据集由BERT的16G扩大到了160G，扩大的10倍。
+
+
+
+
+
+#### ALBERT
+
+ALBERT认为BERT模型的参数量实在太大（一个中文Bert模型有411M），这在存储&训练上都比较消耗资源。因此，ALBERT提出利用「词向量因式分解」、「跨层参数共享」以及「句子顺序预测任务」来减小模型大小并提升模型训练速度。
+
+
+
+**词向量因式分解（Factorized Embedding Parameterization）**
+
+在BERT当中输入层每一个token的embedding层和transformer的hidden_size是直接相连的，这就导致embedded_size(E)就必须等于hidden_size(H)。
+
+那么要想从输入token的size（等于词表的vocab_size，V）映射到隐层H，那么我们就要建立一个映射矩阵：
+
+$(1, V) · (V, H) = (1, H)$
+
+那么中间这个（V，H）的矩阵就是我们需要构建的矩阵，矩阵运算的时间复杂度是O(VH)。
+
+但是今天往往我们的词表V会非常大（毕竟要尽可能多的囊括所有可能出现的字符，中文BERT模型的vocab大小是21128），所以就会造成O(VH)的值特别的大。
+
+ALBERT的作者认为，BERT之所以这么强大，主要是因为**隐层**能够学到**「上下文」**之间的关系，且本身词向量矩阵就是比较稀疏的（因为输入的是one-hot，只有对应词索引的部分才会被激活），所以word embedding的维度并不用和transformer的hidden要一样大，H应该是要远大于（>>）E的。
+
+因此，作者所说的因式分解就是在这里做了一个分解：让word embedding不直接和hidden layer相连，而是先将词表（V）压缩到一个较小的Embedding维度（E），再从较小的Embedding（E）连接到hidden层。
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzpkbzu6ulj212u0swgnd.jpg" alt="截屏2022-02-25 10.46.48" style="zoom: 33%;" />
+
+这样一来，我们就需要构建两个小矩阵，并进行前后两次矩阵运算 O(V, E) + O(E, H)。那从今天来看O(V, H)会是远远大于O(V, E) + O(E, H)的。
+
+
+
+**跨层参数共享（Cross-layer parameter sharing）**
+
+原始BERT中，每一层Transformer的参数是不共享的，而在ALBERT中所有Transformer Layer的参数都是一样的
+
+
+
+**句子顺序预测任务（Sentence Order Prediction，SOP）**
+
+我们在RoBERTa任务中有提到过，将原始BERT任务中的NSP任务去掉反而会有更好的效果。当时我们分析可能是因为从不同的文章中选择的句子，其话题（topic）相差甚远，因此模型并不会学习到句子之间的「连贯性」，而是依赖「话题」进行区分。
+
+因此，在ALBERT中提出了一种新的「句子关联性学习」的任务：顺序预测。
+
+顺序预测任务中，Positive Sample是连续的两段文本，Negative Sample是这两段文本调换顺序，最后让模型学习句子顺序是否正确。
+
+通过调整正负样本的获取方式去除主题识别的影响，使预训练更关注于句子关系一致性预测。
+
+
+
+
+
+#### Electra
+
+https://zhuanlan.zhihu.com/p/89763176
+
+LECTRA最主要的贡献是提出了新的预训练任务和框架，把生成式的Masked language model(MLM)预训练任务改成了判别式的Replaced token detection(RTD)任务，判断当前token是否被语言模型替换过。
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzpkjtc3izj215k0bodh8.jpg" alt="截屏2022-02-25 10.54.20" style="zoom:50%;" />
+
+
+
+
+
+#### ⚠️XLNet
 
 
 
@@ -1991,11 +2116,33 @@ $$
 
 
 
+售卖商品收集回来的反馈和评价信息，如何区分正负向，说一个解决方案
+
+https://blog.csdn.net/dingming001/article/details/82935715
+
+
+
+
+
+如何从大量未标注的图片库中，按照用户的语义查找出要的照片，说一个解决方案
+
+
+
+
+
+
+
 ### 概率题
 
 圆上三个点，钝角三角形的概率
 
+
+
 一对夫妇有两个孩子，已知其中有一个孩子是出生于周二的男孩，问另一个孩子也是男孩的概率。
+
+https://www.zhihu.com/question/36802129
+
+
 
 一组数据同时扩大n倍，方差和均值的变化
 
