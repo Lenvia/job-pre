@@ -244,25 +244,138 @@ Bert使用的是transformer的encoder。
 
 ### 实现sqrt函数，结果保留5位小数
 
+```
+int sqrt(int x) {
+		long long root = x;
+    while(root*root-x>0){
+    		root = (root+x/root)/2;
+    }
+    return (int)root;
+}
+```
 
 
 
 
 
+### 二叉树路径上和为target的<font color=red>最长路径</font>
 
-### 二叉树路径上和为target的最长路径
+和为某一值的路径再加个判断？
+
+
 
 
 
 ### 合并两个有序链表
 
+```
+/*
+struct ListNode {
+	int val;
+	struct ListNode *next;
+	ListNode(int x) :
+			val(x), next(NULL) {
+	}
+};*/
+class Solution {
+public:
+    ListNode* Merge(ListNode* pHead1, ListNode* pHead2) {
+        ListNode* cur1, *cur2, *cur;
+        
+        ListNode* head = new ListNode(0);
+        
+        cur1 = pHead1; cur2 = pHead2; cur = head;
+        
+        while(cur1 && cur2){
+            if(cur1->val<=cur2->val){
+                cur->next = cur1;
+                cur1 = cur1->next;
+            }
+            else{
+                cur->next = cur2;
+                cur2 = cur2->next;
+            }
+            cur = cur->next;
+        }
+        if(cur1){
+            cur->next = cur1;
+        }
+        else cur->next = cur2;
+        
+        return head->next;
+    }
+};
+```
 
 
-### 求一个字符串中连续出现次数最多的子串
+
+### 求一个字符串中<font color=red>连续出现</font>次数最多的子串
+
+先确定 [i, j) 与 [j, j+j-i] 这一段是否相等。如果相等说明至少连续出现了。
+
+然后开始从 j+j-i 开始往后找循环节，统计次数。
+
+```
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <string.h>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <cmath>
+#include <queue>
+using namespace std;
+
+
+string str;
+
+int main(){
+    int maxx = 0;
+    string maxstr;
+    string temp;
+    int n = 0;
+    while(getline(cin, str) && str!="#"){
+        n++;
+        for(int i=0; i<str.length(); i++){
+            for(int j=i+1; j<str.length(); j++){
+                // 每个内循环，固定循环节是 [i, j)，长度是offset
+                int count = 1;
+                int offset = j-i;
+                temp = str.substr(i, offset);
+                if(temp == str.substr(j, offset)){
+                    count++;
+                }
+                else continue;
+                
+                for(int k=j+offset; k<str.length(); k+=offset){
+                    if(temp == str.substr(k, offset)){
+                        count++;
+                    }
+                    else break;
+                }
+                if(maxx<count){
+                    maxx = count;
+                    maxstr = temp;
+                }
+                
+                
+            }
+        }
+        cout<<"Case: "<<n<<": "<<maxstr<<endl;
+    }
+    return 0;
+}
+
+```
+
+
 
 
 
 ### 二分查找
+
+
 
 
 
@@ -271,6 +384,41 @@ Bert使用的是transformer的encoder。
 
 
 ### 删除链表中的重复节点
+
+```
+/*
+struct ListNode {
+    int val;
+    struct ListNode *next;
+    ListNode(int x) :
+        val(x), next(NULL) {
+    }
+};
+*/
+class Solution {
+public:
+    ListNode* deleteDuplication(ListNode* pHead) {
+        if(pHead==nullptr) return nullptr;
+        
+        ListNode* cur = pHead;
+        ListNode* head = pHead;
+        
+        int flag = 0;
+        while(cur->next && cur->val == cur->next->val){
+            // 删除cur后面的，并在最后删除头节点
+            cur->next = cur->next->next;
+            flag = 1;
+        }
+        if(flag){  // 删除头节点
+            head = deleteDuplication(cur->next);
+        }
+        else{
+            head->next = deleteDuplication(cur->next);
+        }
+        return head;
+    }
+};
+```
 
 
 
