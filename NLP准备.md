@@ -14,6 +14,8 @@
 
 ### word2vec
 
+https://www.zhihu.com/question/44832436/answer/131725613
+
 它将每个词映射到一个固定长度的向量，这些向量能更好地表达不同**词之间的相似性和类比关系**。（使得语义相似的单词在嵌入式空间中的距离很近）
 
 word2vec 本质上是一种**降维**操作——把词语从 one-hot encoder 形式的表示降维到更低维度的向量的表示。
@@ -367,7 +369,9 @@ GRU的优点是其模型的简单性 ，因此更适用于构建较大的网络�
 
 ### ⭐️Transformer
 
-**https://zhuanlan.zhihu.com/p/82312421**（Transformer的剖析，建议看）
+**https://zhuanlan.zhihu.com/p/338817680（Transformer模型详解，建议看）**
+
+https://zhuanlan.zhihu.com/p/82312421（Transformer的剖析）
 
 https://zh-v2.d2l.ai/chapter_attention-mechanisms/transformer.html
 
@@ -396,11 +400,30 @@ Transformer是一个纯使用注意力的 编码-解码器
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gxkdudis5aj30s20yewhe.jpg" alt="截屏2021-12-20 16.33.51" style="zoom:40%;" />
 
-从宏观角度来看，transformer 的编码器是由多个相同的层叠加而成的，每个层都有两个子层。第一个子层是***多头自注意力***（multi-head self-attention）汇聚；第二个子层是***基于位置的前馈网络***（positionwise feed-forward network）。
+从宏观角度来看，transformer 的编码器是由多个相同的层叠加而成的，每个层都有两个子层。第一个子层是**多头自注意力**（multi-head self-attention）汇聚；第二个子层是**基于位置的前馈网络**（positionwise feed-forward network）。
 
-具体来说，在计算编码器的自注意力时，查询、键和值都来自前一个编码器层的输出。受 [7.6节](https://zh-v2.d2l.ai/chapter_convolutional-modern/resnet.html#sec-resnet)中残差网络的启发，每个子层都采用了*残差连接*（residual connection）。在残差连接的加法计算之后，紧接着应用 LayerNorm 。因此，输入序列对应的每个位置，transformer编码器都将输出一个d维表示向量。
+具体来说，在计算编码器的自注意力时，Q、K和V都来自前一个编码器层的输出。每个子层都采用了**残差连接**（residual connection）,紧接着应用 LayerNorm 。**（Layer Normalization 会将每一层神经元的输入都转成均值方差都一样的，这样可以加快收敛）**
 
-Transformer解码器也是由多个相同的层叠加而成的，并且层中使用了残差连接和LayerNorm。除了编码器中描述的两个子层之外，解码器还在这两个子层之间插入了第三个子层，称为***编码器－解码器注意力*（encoder-decoder attention）层**。在编码器－解码器注意力中，**query来自前一个解码器层的输出**，而**键和值来自整个编码器的输出**。在解码器自注意力中，查询、键和值都来自上一个解码器层的输出。但是，解码器中的<u>每个位置只能考虑该位置之前的所有位置</u>。这种*掩蔽*（masked）注意力保留了*自回归*（auto-regressive）属性，<u>确保预测仅依赖于已生成的输出词元</u>。
+第一个 Encoder block 的输入为句子单词的表示向量矩阵，后续 Encoder block 的输入是前一个 Encoder block 的输出，最后一个 Encoder block 输出的矩阵就是**编码信息矩阵 C**，这一矩阵后续会用到 Decoder 中。
+
+<img src="https://pic3.zhimg.com/80/v2-45db05405cb96248aff98ee07a565baa_1440w.jpg" alt="img" style="zoom:33%;" />
+
+
+
+解码器也是由多个相同的层叠加而成的，并且层中使用了残差连接和LayerNorm。除了编码器中描述的两个子层之外，解码器还在这两个子层之间插入了第三个子层，称为***编码器－解码器注意力*（encoder-decoder attention）层**。在编码器－解码器注意力中，**query来自前一个解码器层的输出**，而**K, V**矩阵使用 Encoder 的**编码信息矩阵**。
+
+在解码器自注意力中，Q、K和V都来自上一个解码器层的输出。但是，解码器中的<u>每个位置只能考虑该位置之前的所有位置</u>。
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzrcz1el81j21220gamyd.jpg" alt="截屏2022-02-27 00.03.20" style="zoom:33%;" />
+
+
+
+**Transformer 总结**
+
+- Transformer 与 RNN 不同，可以比较好地并行训练。
+- Transformer 本身是不能利用单词的顺序信息的，因此需要在输入中添加位置 Embedding，否则 Transformer 就是一个词袋模型了。
+- Transformer 的重点是 Self-Attention 结构，其中用到的 **Q, K, V**矩阵通过输出进行线性变换得到。
+- Transformer 中 Multi-Head Attention 中有多个 Self-Attention，可以捕获单词之间多种维度上的相关系数 attention score。
 
 
 
@@ -418,7 +441,7 @@ https://zhuanlan.zhihu.com/p/360144789
 
 多头自注意力可以基于相同的注意力机制学习到不同的行为，然后把不同的行为作为知识组合起来，捕获序列内各种范围的依赖关系。
 
-多头可以使 参数矩阵 形成多个**子空间**，矩阵整体的size不变，只是改变了每个head对应的维度大小，这样做使矩阵对多方面信息进行学习，但是计算量和单个head差不多。
+多头可以使 参数矩阵 形成多个**子空间**，矩阵整体的size不变，对每个head进行降维，学习更丰富的特征信息，但是计算量和单个head差不多。
 
 
 
@@ -446,13 +469,17 @@ Q和K的点乘是为了得到一个attention score 矩阵，用来对V进行提�
 
 https://blog.csdn.net/qq_37430422/article/details/105042303
 
-两个向量的内积均值为 0，而方差为$d_k$。当 $d_k$ 较大时，向量内积容易取很大的值。
+当 $d_k$ 较大时，向量内积容易取很大的值。两个向量的内积均值为 0，而方差为$d_k$。
 
 **方差较大，不同的 key 与同一个 query 算出的对齐分数可能会相差很大，有的远大于 0，有的则远小于 0.**
 
-在输入数量较大时，softmax将几乎全部的概率分布都分配给了最大值对应的标签。也就是说**极大的点积值**将整个 softmax 推向**梯度平缓区**，使得收敛困难，梯度消失为0，造成参数更新困难。
+**很有可能存在某个 key，其与 query 计算出来的对齐分数远大于其他的 key 与该 query 算出的对齐分数。**
+
+softmax函数对各个内积的偏导数都趋近于0，造成参数更新困难。
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gz7dvmrra6j30n403mq2y.jpg" alt="截屏2022-02-09 17.23.20" style="zoom:50%;" />
+
+
 
 
 
@@ -477,6 +504,12 @@ Transformer使用attention，attention是位置无关的，会丢失词序信息
 
 
 **简单讲一下Transformer中的残差结构以及意义。**
+
+（详见ResNet标题）
+
+残差连接 (Residual Connection) 用于防止网络退化。
+
+<img src="https://tva1.sinaimg.cn/large/008i3skNly1gyp8chdceij317e0s2gon.jpg" alt="截屏2022-01-25 00.31.43" style="zoom: 33%;" />
 
 encoder和decoder的self-attention层和ffn层都有残差连接。反向传播的时候不会造成梯度消失。
 
@@ -531,11 +564,13 @@ $$
 
 
 
-⚠️**Transformer的并行化提现在哪个地方？Decoder端可以做并行化吗？**
+**Transformer的并行化提现在哪个地方？Decoder端可以做并行化吗？**
 
 Transformer的并行化主要体现在self-attention模块，在Encoder端Transformer可以并行处理整个序列，并得到整个输入序列经过Encoder端的输出。
 
 Decoder在训练的时候可以，但是交互的时候不可以。
+
+> Decoder 可以在训练的过程中使用 Teacher Forcing 并且并行化训练，即将正确的单词序列 (\<Begin> I have a cat) 和对应输出 (I have a cat \<end>) 传递到 Decoder。那么在预测第 i 个输出时，就要将第 i+1 之后的单词掩盖住，**注意 Mask 操作是在 Self-Attention 的 Softmax 之前使用的，下面用 0 1 2 3 4 5 分别表示 "\<Begin> I have a cat \<end>"。**
 
 
 
@@ -587,7 +622,7 @@ bert的输出就是 对每一个词元 返回一个抽取了上下文信息的�
 特点：上下文敏感，可以用于不可知任务。
 
 预训练任务1: 带掩码的语言模型
-Transformer编码器是双向的，语言模型要求是单向的（不能考虑它之后的词提供的信息）
+Transformer编码器是双向的
 每次随机（15%）将一些词元替换成<mask>。每次去预测一下是什么。
 在选择mask的15%的词当中
 	1) 80%的概率下，将选中的词元变成<mask>
@@ -595,7 +630,7 @@ Transformer编码器是双向的，语言模型要求是单向的（不能考虑
 	3) 10%的概率下，保留原有的词元
 
 预训练任务2: 下一句子预测
-预测一个句子对中的两个句子是不是相邻（引入这个任务可以更好地让模型学到连续的文本片段之间的关系）
+预测一个句子对中的两个句子是不是相邻
 训练样本中
 	50%的概率选择相邻句子对
 	50%的概率选择随机句子对
@@ -683,7 +718,7 @@ Bert maxposition：512
 
 #### 预训练任务1：带掩码的语言模型
 
-- Transformer的编码器是双向的，标准语言模型要求单向（不能考虑它之后的词的信息）。
+- Transformer的编码器是双向的，Bert是深层，多层的网络结构会暴露预测词，失去学习的意义。
 - 每次随机（15%）将一些词元换成\<mask>。每次去预测一下是什么
 - 因为微调任务中没有\<mask>【如果一直用标记[MASK]代替（在实际预测时是碰不到这个标记的）会影响模型】
   - 80%概率下，将选中的词元变成\<mask>
@@ -917,7 +952,7 @@ RoBERTa并没有去更改BERT的网络结构，只是修改了一些预训练时
 
 **动态掩码技术（Dynamic Masking）**
 
-原始BERT中，训练数据集中的[MASK]位置是预先就生成好的，但RoBERTa中，[MASK]的位置是在模型训练的时候实时计算决定的。这样的好处在于，无论你训练多少个Epoch，都能极大程度上避免训练数据的重复，如果只使用一份静态数据的话，每个Epoch训练的数据都是一样的（[MASK]的位置也是一样的）。
+原始BERT中，训练数据集中的[MASK]位置是预先就生成好的，但RoBERTa中，**[MASK]的位置是在模型训练的时候实时计算决定的**。这样的好处在于，无论你训练多少个Epoch，都能**极大程度上避免训练数据的重复**，如果只使用一份静态数据的话，每个Epoch训练的数据都是一样的（[MASK]的位置也是一样的）。
 
 
 
@@ -947,9 +982,9 @@ ALBERT认为BERT模型的参数量实在太大（一个中文Bert模型有411M�
 
 **词向量因式分解（Factorized Embedding Parameterization）**
 
-在BERT当中输入层每一个token的embedding层和transformer的hidden_size是直接相连的，这就导致embedded_size(E)就必须等于hidden_size(H)。
+在BERT当中**输入层每一个token的embedding层和transformer的hidden_layer是直接相连**的，这就导致**embedded_size(E)就必须等于hidden_size(H)**。
 
-那么要想从输入token的size（等于词表的vocab_size，V）映射到隐层H，那么我们就要建立一个映射矩阵：
+那么要想**从输入token的size**（等于词表的vocab_size，V）**映射到隐层H**，那么我们就要建立一个映射矩阵：
 
 $(1, V) · (V, H) = (1, H)$
 
@@ -957,9 +992,9 @@ $(1, V) · (V, H) = (1, H)$
 
 但是今天往往我们的词表V会非常大（毕竟要尽可能多的囊括所有可能出现的字符，中文BERT模型的vocab大小是21128），所以就会造成O(VH)的值特别的大。
 
-ALBERT的作者认为，BERT之所以这么强大，主要是因为**隐层**能够学到**「上下文」**之间的关系，且本身词向量矩阵就是比较稀疏的（因为输入的是one-hot，只有对应词索引的部分才会被激活），所以word embedding的维度并不用和transformer的hidden要一样大，H应该是要远大于（>>）E的。
+ALBERT的作者认为，BERT之所以这么强大，主要是因为**隐层**能够学到**「上下文」**之间的关系，且**本身词向量矩阵就是比较稀疏的**（因为输入的是one-hot，只有对应词索引的部分才会被激活），所以**word embedding的维度并不用和transformer的hidden要一样大**，H应该是要远大于（>>）E的。
 
-因此，作者所说的因式分解就是在这里做了一个分解：让word embedding不直接和hidden layer相连，而是先将词表（V）压缩到一个较小的Embedding维度（E），再从较小的Embedding（E）连接到hidden层。
+因此，作者所说的因式分解就是在这里做了一个分解：让word embedding不直接和hidden layer相连，而是**先将词表（V）压缩到一个较小的Embedding维度（E），再从较小的Embedding（E）连接到hidden层。**
 
 <img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzpkbzu6ulj212u0swgnd.jpg" alt="截屏2022-02-25 10.46.48" style="zoom: 33%;" />
 
@@ -991,7 +1026,7 @@ ALBERT的作者认为，BERT之所以这么强大，主要是因为**隐层**能
 
 https://zhuanlan.zhihu.com/p/89763176
 
-LECTRA最主要的贡献是提出了新的预训练任务和框架，把生成式的Masked language model(MLM)预训练任务改成了判别式的Replaced token detection(RTD)任务，判断当前token是否被语言模型替换过。
+ELECTRA最主要的贡献是提出了新的预训练任务和框架，把生成式的Masked language model(MLM)预训练任务改成了判别式的Replaced token detection(RTD)任务，判断当前token是否被语言模型替换过。
 
 <img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzpkjtc3izj215k0bodh8.jpg" alt="截屏2022-02-25 10.54.20" style="zoom:50%;" />
 
@@ -1798,11 +1833,13 @@ $$
 
 **为什么L1会产生稀疏解？**
 
+https://zhuanlan.zhihu.com/p/129024068
+
 1）从梯度角度
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gz1x7lo6ghj30tm0dkgm8.jpg" alt="截屏2022-02-04 23.58.53" style="zoom: 40%;" /> <img src="https://tva1.sinaimg.cn/large/008i3skNly1gz1x7wr9n5j30t20e4aam.jpg" alt="截屏2022-02-04 23.59.11" style="zoom:40%;" /> 
 
-当 $w_i$ 小于1的时候，L2的惩罚项会越来越小，而L1还是会非常大，所以L1会使参数为0，而L2很难。
+引入L2正则时，代价函数在0处的导数仍是d0，无变化。而引入L1正则后，代价函数在0处的导数有一个突变。从d0+λ到d0−λ，若d0+λ和d0−λ异号，则在0处会是一个极小值点。因此，优化时，很可能优化到该极小值点上，即w=0处。通常越大的λ 可以让代价函数在参数为0时取到最小值。
 
 
 
@@ -2126,7 +2163,9 @@ https://blog.csdn.net/dingming001/article/details/82935715
 
 如何从大量未标注的图片库中，按照用户的语义查找出要的照片，说一个解决方案
 
+小样本学习
 
+https://blog.csdn.net/weixin_40123108/article/details/89003325
 
 
 
