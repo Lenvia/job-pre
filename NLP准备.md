@@ -710,17 +710,23 @@ BERT（来自Transformers的双向编码器表示）结合了这两个方面的�
 
 
 
-⚡️<font color=red>**Bert的参数量计算，一层一层说**</font>
-
-（2022.02.28 字节电商NLP二面深挖）
-
-
-
-
-
 Bert maxposition：512
 
 谷歌开源的预训练模型，那么这个词表的大小将会被限制在512
+
+
+
+
+
+⚡️<font color=red>**Bert的参数量计算，一层一层说**</font>
+
+（2022.02.28 字节电商NLP二面）
+
+https://zhuanlan.zhihu.com/p/144582114
+
+
+
+
 
 
 
@@ -819,7 +825,7 @@ Bert 对每一个词元返回 **抽取了上下文信息的特征向量**。（�
 
 #### ⚠️优化器
 
-改进的Adam？
+不是标准的Adam？
 
 
 
@@ -1542,7 +1548,75 @@ Dropout 在训练时采用，是为了减少神经元对部分上层神经元的
 
 
 
-### ⚠️LayerNorm和BatchNorm
+### ⚠️LayerNorm
+
+
+
+### BatchNorm
+
+https://zhuanlan.zhihu.com/p/437446744
+
+Batch-Normalization (BN)是一种让神经网络训练更快、更稳定的方法(faster and more stable)。它计算每个mini-batch的均值和方差，并将其拉回到均值为0方差为1的标准正态分布。BN层通常在nonlinear function的前面/后面使用。
+
+
+
+**计算方法**
+
+训练阶段：
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzurl5uwijj21400piacg.jpg" alt="img" style="zoom:33%;" />
+
+用(1)(2)式计算一个mini-batch之内的均值和方差
+
+用(3)式来进行normalize。这样，每个神经元的output在整个batch上是标准正态分布。
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1gzurls03agj21bg0jg767.jpg" alt="截屏2022-03-01 22.46.18" style="zoom:33%;" />
+
+最后，使用可学习的参数  $\gamma$ 和 $\beta$ 来进行线性变换。这是为了让因训练所需而“刻意”加入的BN能够有可能还原最初的输入，从而保证整个network的capacity。
+
+也可以理解为找到线性/非线性的平衡：以Sigmoid函数为例，batchnorm之后数据整体处于函数的非饱和区域，只包含线性变换，破坏了之前学习到的特征分布 。增加  $\gamma$ 和 $\beta$ 能够找到一个线性和非线性的较好平衡点，既能享受非线性的较强表达能力的好处，又避免太靠非线性区两头"死区"（如sigmoid)使得网络收敛速度太慢。
+
+
+
+测试阶段：
+
+可能输入就只有一个实例，看不到Mini-Batch其它实例。于是计算
+
+- $\mu_{pop}$ : estimated mean of the studied population ;
+- $\sigma_{pop}$ : estimated standard-deviation of the studied population.
+
+$\mu_{pop}$ 和 $\sigma_{pop}$ 是由训练时的 $\mu_{batch}$ 和 $\sigma_{batch}$ 计算得到的。这两个值代替了在(1)(2)中算出的均值和方差，可以直接带入(3)式。
+
+
+
+**实际应用**
+
+在全连接网络中是对**每个神经元**进行归一化，也就是每个神经元都会学习一个 $\gamma$ 和 $\beta$
+
+
+
+**BN的缺点**
+
+在testing阶段，$\mu_{pop}$ 和 $\sigma_{pop}$ 使用的是估计值。假如训练集和测试集分布不同，会导致测试集经过batchnorm之后并不是服从均值为0，方差为1的分布。
+
+
+
+**BN层的作用**
+
+1. **降低了每层网络之间的依赖**
+2. BN的存在会引入mini-batch内**其他样本的信息**，就会导致预测一个独立样本时，其他样本信息相当于**正则项**，使得**loss曲面变得更加平滑**，更容易找到最优解。相当于一次独立样本预测可以看多个样本，学到的特征**泛化性**更强
+
+
+
+
+
+⚡️<font color=red>**BatchNorm的参数和计算过程**</font>
+
+（2022.02.28 字节电商NLP二面深挖）
+
+
+
+
 
 **LayerNorm和BatchNorm的区别**
 
@@ -1584,10 +1658,6 @@ BatchNorm是对每一批的数据在进入激活函数前进行归一化。
 
 
 
-
-⚡️<font color=red>**BatchNorm的结构、参数**</font>
-
-（2022.02.28 字节电商NLP二面深挖）
 
 
 
@@ -1730,6 +1800,14 @@ beam search尝试在广度优先基础上进行进行搜索空间的优化（类
 3. 持续上述过程，直到结束。最终输出3个得分最高的。
 
 
+
+### ⚠️训练和预测时，batch_size不同怎么办？
+
+(2022.02.28字节电商NLP二面)
+
+训练的时候是一组一组放进去的，但预测的时候，一个一个放进去，是怎么处理的？
+
+我也不知道啊。
 
 
 
@@ -2208,7 +2286,7 @@ $$
 
 https://blog.csdn.net/dingming001/article/details/82935715
 
-这个方案不行
+下面这个方案不行
 
 ```
 数据预处理(文本去重、机械压缩、短句删除)、中文分语、停用词过滤
@@ -2222,13 +2300,13 @@ Bert
 
 
 
-正确答案：动什么什么
+推荐答案：
 
-就是预测一次，然后对于模糊不清的结果手动调节一下，再放入训练。
-
-
+先随便训练个弱一点的，进行预测，然后对于模糊不清的结果（比如认为概率大于0.5的是正样本，小于0.5的是负样本，但有时候0.45的也可能是正样本），手动调节（打标签）一下，再放入训练。
 
 
+
+------
 
 如何从大量未标注的图片库中，按照用户的语义查找出要的照片，说一个解决方案
 
