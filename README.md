@@ -6,7 +6,7 @@
 
 喜爱开发，但缺少有质量的开发项目。倒是修了一堆 AI 方向的课。本科时个人排斥 Deep Learning 的学习，只了解最基本的概念，NLP 知识来自于研究生课程。 后端自学过一段时间的 Spring, SpringMVC 等，仅写过一个 SSM 练手项目。
 
-本人先复习了 NLP 相关的知识，找了算法岗实习作为保底。本人承诺，一定回归自己喜爱的开发上。（没准从跳过 Java 从头学Golang？）
+本人先复习了 NLP 相关的知识，找了算法岗实习作为保底。本人承诺，一定回归自己喜爱的开发上。（没准从跳过 Java 从头学 Golang？）
 
 
 
@@ -32,7 +32,9 @@
 
 下载链接：
 
-https://download.typora.io/mac/Typora-0.11.18.dmg
+[Mac版](https://download.typora.io/mac/Typora-0.11.18.dmg)
+
+[Windows版](https://download.typora.io/windows/typora-update-x64-1117.exe)
 
 
 
