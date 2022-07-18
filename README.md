@@ -16,15 +16,7 @@
 
 ## 使用方法
 
-由于 github 在线预览会导致部分 markdown 排版无法正常显示，强烈建议下载文档并使用阅读器打开。
-
-例如，Typora 测试版（稳定版需付费）。
-
-下载链接：
-
-[Mac版](https://download.typora.io/mac/Typora-0.11.18.dmg)
-
-[Windows版](https://download.typora.io/windows/typora-update-x64-1117.exe)
+由于 github 在线预览会导致部分 markdown 排版无法正常显示，强烈建议下载文档并使用阅读器打开（推荐Typora，不过官方已开始收费）
 
 
 
