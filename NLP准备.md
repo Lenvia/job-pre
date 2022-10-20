@@ -503,6 +503,10 @@ Transformer使用attention，attention是位置无关的，会丢失词序信息
 
 因此需要主动将词序信息喂给模型。模型原先的输入是不含词序信息的词向量，**位置编码需要将词序信息和词向量结合起来形成一种新的表示输入给模型**，这样模型就具备了学习词序信息的能力。
 
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h37z0a2f5vj21bk0ig40n.jpg" alt="截屏2022-06-14 18.55.42" style="zoom:40%;" />
+
+
+
 
 
 **简单讲一下Transformer中的残差结构以及意义。**
@@ -513,7 +517,7 @@ Transformer使用attention，attention是位置无关的，会丢失词序信息
 
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gyp8chdceij317e0s2gon.jpg" alt="截屏2022-01-25 00.31.43" style="zoom: 33%;" />
 
-encoder和decoder的self-attention层和ffn层都有残差连接。反向传播的时候不会造成梯度消失。
+encoder 和 decoder 的 self-attention 层和 ffn 层都有残差连接。反向传播的时候不会造成梯度消失。
 
 
 
@@ -601,6 +605,10 @@ BERT和transformer的目标不一致，bert是语言的预训练模型，需要�
 
 
 ### ⭐️⭐️⭐️Bert
+
+https://blog.csdn.net/qq_33419476/article/details/118102302（快速过一遍论文）
+
+
 
 https://zh-v2.d2l.ai/chapter_natural-language-processing-pretraining/bert.html
 
@@ -764,13 +772,81 @@ https://zhuanlan.zhihu.com/p/144582114
 
 
 
+⚠️⚡️**Bert 预训练任务的目的？**
+
+MLM：
+
+模型需要在token级别产生细粒度输出，用于命名实体识别？问答？
+
+为什么mask？
+
+**为了训练一个深层双向表示。**标准的条件语言模型只能被从左到右或从右到左进行训练，因为双向条件能让每个词间接地看到自己，而且模型在多层上下文环境下可以很简单地预测出目标词。
+
+
+
+NSP：
+
+**许多重要的下游任务，例如问答和自然语言推理，都基于理解两个句子之间的关系**。但是句子之间的关系不能直接被语言建模捕获。
+
+
+
+
+
 
 
 ⚡️**设想一下，为Bert进行哪些预训练任务可以更好地用于下游任务？**
 
 （2022.06.09 字节 ailab一面）
 
+https://www.zhihu.com/question/476739870/answer/2072429532
 
+<img src="https://pic1.zhimg.com/80/v2-42d4441f274f1322ed783f68d976df87_1440w.jpg?source=1940ef5c" alt="img" style="zoom: 33%;" />
+
+Token级别：
+
+1. 词频预测（TF）：回归预测一个令牌在文档其余部分的频率。每个文档的频率在 0 到 10 之间重新调整。
+2. 词频-逆文档频率预测 (TF-IDF)：回归预测每个文档已在 0 到 10 之间重新缩放的令牌的 tf-idf。
+3. **句子边界目标（SBO）：Predict the masked token given the embeddings of the adjacent tokens.**
+4. **Trigram-Shuffling (TGS)：6-way classification predicting the original order of shuffled tri-grams.**
+5. 令牌损坏预测 (TCP)：令牌是否已损坏（插入、替换、置换）的二进制分类
+6. **大写预测（Cap.）：二进制，token是否大写。**
+7. Token Length Prediction (TLP)：回归预测 WordPiece 令牌的长度。
+
+句子级别：
+
+8. Next Sentence Prediction (NSP)：二进制，第二个句子是跟在第一个句子之后还是来自一个单独的文档。
+
+9. **相邻句子预测 (ASP)：三向分类，第二个句子是在第一个句子之后，还是在第一个句子之前，或者它们来自不同的文档。**
+
+10. Sentence Ordering (SO)：二进制，预测两个句子是有序还是乱序。
+
+11. Sentence Distance Prediction (SDP)：3-way classification of whether the second sentence proceeds, the two sentences are noncontiguous from the same document, or come from separate documents.
+
+12. Sentence Corruption Prediction (SCP)：句子中的标记是否已被损坏（插入、替换、置换）的二进制分类。
+
+13. Quick Thoughts 变体（QT）：将每个批次分成两部分，其中后半部分包含前半部分的后续句子（例如，批量大小为 32，句子 17 跟在句子 1 之后，句子 18 跟在句子 2 之后，...） .我们使用基于能量的模型来预测前半部分每个句子的正确延续，其中两个句子之间的能量由它们 [CLS] 嵌入的负余弦相似度定义。我们使用一个模型同时编码两半。请参见图 1。
+
+14. FastSent 变体（FS）：将每批分成两部分，其中后半部分包含前半部分的后续句子（与上面的 QT 相同）。损失定义为 1.0 与句子 [CLS] 嵌入和其他句子标记嵌入的余弦相似度之间的交叉熵（前半部分的 [CLS] 嵌入与后半部分的标记嵌入和第二部分的 [CLS] 嵌入）一半带有前半部分的令牌嵌入）。我们使用一个模型同时编码两半。
+
+
+
+
+
+https://blog.csdn.net/qq_25850819/article/details/114580499
+
+可以增加的预训练任务有一个前提，就是这些任务的训练数据要能从无监督的数据中获取，这样才能获取到海量的数据，符合这一要求的任务可以进行尝试。
+
+提供一些预训练任务的思路：
+
+1. Capitalization Prediction Task
+   预测单词是否大写。与其他词语相比，大写词语通常具有特定的语义价值。
+
+2. Token-Document Relation Prediction Task
+   预测一个段落中的某个token是否出现在原始文档的其他段落中。
+   在文档不同部分都出现的单词通常是文档中的关键词，因此这一任务可以在一定程度上使模型能够**捕获文档的关键字。**
+
+3. Sentence Distance Task
+   学习句子间距离的任务。该任务被建模为一个3分类的问题，“0”表示两个句子在同一个文档中相邻；“1”表示两个句子在同一个文档中，但不相邻；“2”表示两个句子来自两个不同的文档。
 
 
 
@@ -839,7 +915,15 @@ Bert 对每一个词元返回 **抽取了上下文信息的特征向量**。（�
 
 #### ⚠️优化器
 
-不是标准的Adam？
+https://blog.csdn.net/weixin_45743001/article/details/120472616
+
+不是标准的Adam
+
+AdamW
+
+Adamw 即 Adam + weight decate ,效果与 Adam + L2[正则化](https://so.csdn.net/so/search?q=正则化&spm=1001.2101.3001.7020)相同,但是计算效率更高,因为L2正则化需要在loss中加入正则项,之后再算梯度,最后在反向传播,而Adamw直接将正则项的梯度加入反向传播的公式中,省去了手动在loss中加正则项这一步
+
+<img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h3a3bwfg73j212m0jwwim.jpg" alt="截屏2022-06-16 14.56.25" style="zoom:50%;" />
 
 
 
@@ -1387,7 +1471,6 @@ $$
 H_{t+1}(x) = H_{t}(x)+ \eta f_{t}(x)
 $$
 
-
 <img src="https://tva1.sinaimg.cn/large/008i3skNly1gyp9x1kfwjj312o0l0n02.jpg" alt="截屏2022-01-25 01.26.09" style="zoom: 50%;" />
 
 
@@ -1596,7 +1679,7 @@ Batch-Normalization (BN)是一种让神经网络训练更快、更稳定的方�
 
 最后，使用可学习的参数  $\gamma$ 和 $\beta$ 来进行线性变换。这是为了让因训练所需而“刻意”加入的BN能够有可能还原最初的输入，从而保证整个network的capacity。
 
-也可以理解为找到线性/非线性的平衡：以Sigmoid函数为例，batchnorm之后数据整体处于函数的非饱和区域，只包含线性变换，破坏了之前学习到的特征分布 。增加  $\gamma$ 和 $\beta$ 能够找到一个线性和非线性的较好平衡点，既能享受非线性的较强表达能力的好处，又避免太靠非线性区两头"死区"（如sigmoid)使得网络收敛速度太慢。
+也可以理解为找到线性/非线性的平衡：以Sigmoid函数为例，batchnorm之后数据整体处于函数的非饱和区域，只包含非线性变换？，破坏了之前学习到的特征分布 。增加  $\gamma$ 和 $\beta$ 能够找到一个线性和非线性的较好平衡点，既能享受非线性的较强表达能力的好处，又避免太靠非线性区两头"死区"（如sigmoid)使得网络收敛速度太慢。
 
 
 
