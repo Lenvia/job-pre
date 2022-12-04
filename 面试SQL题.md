@@ -15,6 +15,10 @@ sql运行顺序
 
 
 
+
+
+## 操作符
+
 ### SQL9 查找除复旦大学的用户信息
 
 
@@ -88,7 +92,7 @@ where university like "%北京%"
 
 
 
-
+## 计算函数
 
 ### SQL16 查找GPA最高值
 
@@ -132,7 +136,7 @@ where gender = "male"
 
 
 
-
+## 分组查询
 
 ### SQL18 分组计算练习题
 
@@ -202,6 +206,8 @@ order by avg_question_cnt asc
 
 
 
+## 多表查询
+
 ### <font color=orange>SQL21 浙江大学用户题目回答情况</font>
 
 查看所有来自浙江大学的用户题目回答明细情况。
@@ -254,7 +260,7 @@ where
 
 
 
-### SQL22 统计每个学校的答过题的用户的平均答题数
+### <font color=red>SQL22 统计每个学校的答过题的用户的平均答题数</font>
 
 了解每个学校答过题的用户平均答题数量情况
 
@@ -284,6 +290,15 @@ where
 
 
 
+结果样例：
+
+| university | avg_answer_cnt |
+| ---------- | -------------- |
+| 北京大学   | 1.0000         |
+| 复旦大学   | 2.0000         |
+
+
+
 问题分解：
 
 - 限定条件：无；
@@ -303,4 +318,197 @@ group by
 ```
 
 
+
+
+
+### <font color=red>SQL23 统计每个学校各难度的用户平均刷题数</font>
+
+计算一些**参加了答题**的不同学校、不同难度的用户平均答题量。
+
+三表联查。
+
+用户信息表：user_profile
+
+| id   | device_id | gender | age  | university | gpa  | active_days_within_30 | question_cnt | answer_cnt |
+| ---- | --------- | ------ | ---- | ---------- | ---- | --------------------- | ------------ | ---------- |
+| 1    | 2138      | male   | 21   | 北京大学   | 3.4  | 7                     | 2            | 12         |
+| 2    | 3214      | male   | NULL | 复旦大学   | 4    | 15                    | 5            | 25         |
+| 3    | 6543      | female | 20   | 北京大学   | 3.2  | 12                    | 3            | 30         |
+
+题库练习明细表：question_practice_detail
+
+| id   | device_id | question_id | result |
+| ---- | --------- | ----------- | ------ |
+| 1    | 2138      | 111         | wrong  |
+| 2    | 3214      | 112         | wrong  |
+| 3    | 3214      | 113         | wrong  |
+| 4    | 6534      | 111         | right  |
+
+表：question_detail
+
+| id   | question_id | difficult_level |
+| ---- | ----------- | --------------- |
+| 1    | 111         | hard            |
+| 2    | 112         | medium          |
+| 3    | 113         | easy            |
+
+
+
+结果样例：
+
+| university | difficult_level | avg_answer_cnt |
+| ---------- | --------------- | -------------- |
+| 北京大学   | hard            | 1.0000         |
+| 复旦大学   | easy            | 1.0000         |
+| 复旦大学   | medium          | 1.0000         |
+
+
+
+问题分解：
+
+- 限定条件：无；
+- 每个学校：按学校分组`group by university`
+- 不同难度：按难度分组`group by difficult_level`
+- 平均答题数：总答题数除以总人数`count(qpd.question_id) / count(distinct qpd.device_id)`
+- 来自上面信息三个表，需要联表，up与qpd用device_id连接，qd与qpd用question_id连接。
+
+
+
+我的答案
+
+```
+select
+  university,
+  difficult_level,
+  round(count(qpd.question_id) / count(distinct qpd.device_id), 4) as avg_answer_cnt
+from
+  user_profile as up
+  inner join question_practice_detail as qpd on up.device_id = qpd.device_id
+  inner join question_detail as qd on qpd.question_id = qd.question_id
+group by
+  university,
+  difficult_level
+```
+
+推荐答案
+
+```
+select 
+    university,
+    difficult_level,
+    round(count(qpd.question_id) / count(distinct qpd.device_id), 4) as avg_answer_cnt
+from question_practice_detail as qpd
+
+left join user_profile as up
+on up.device_id=qpd.device_id
+
+left join question_detail as qd
+on qd.question_id=qpd.question_id
+
+group by university, difficult_level
+```
+
+
+
+
+
+### **SQL24** 统计每个用户的平均刷题数
+
+查看**参加了答题**的山东大学的用户在不同难度下的平均答题题目数
+
+（和SQL23的表结构一样）
+
+问题分解：
+
+- 限定条件：山东大学的用户 `up.university="山东大学"`；
+- 不同难度：按难度分组`group by difficult_level`
+- 平均答题数：总答题数除以总人数count(qpd.question_id) / count(distinct qpd.device_id) 来自上面信息三个表，需要联表，up与qpd用device_id连接并限定大学，qd与qpd用question_id连接。
+
+
+
+（group by 的 university 可以去掉）
+
+```
+select
+  university,
+  difficult_level,
+  round(
+    count(qpd.question_id) / count(distinct qpd.device_id),
+    4
+  ) as avg_answer_cnt
+from
+  user_profile as up
+  inner join question_practice_detail as qpd on up.device_id = qpd.device_id
+  inner join question_detail as qd on qpd.question_id = qd.question_id
+where
+  university = "山东大学"
+group by
+  university,
+  difficult_level
+```
+
+
+
+优化一下，把限制条件university放在第一层inner join
+
+```
+select
+  university,
+  difficult_level,
+  round(
+    count(qpd.question_id) / count(distinct qpd.device_id),
+    4
+  ) as avg_answer_cnt
+from
+  user_profile as up
+  inner join question_practice_detail as qpd on up.device_id = qpd.device_id and up.university = "山东大学"
+  inner join question_detail as qd on qpd.question_id = qd.question_id
+group by
+  university,
+  difficult_levelselect
+  university,
+  difficult_level,
+  round(
+    count(qpd.question_id) / count(distinct qpd.device_id),
+    4
+  ) as avg_answer_cnt
+from
+  user_profile as up
+  inner join question_practice_detail as qpd on up.device_id = qpd.device_id and up.university = "山东大学"
+  inner join question_detail as qd on qpd.question_id = qd.question_id
+group by
+  difficult_level
+```
+
+
+
+
+
+### SQL25 查找山东大学或者性别为男生的信息
+
+分别查看学校为山东大学或者性别为男性的用户的device_id、gender、age和gpa数据，请取出相应结果，结果不去重。
+
+分别查看&结果不去重：所以直接使用两个条件的or是不行的，直接用union也不行，要用union all，分别去查满足条件1的和满足条件2的，然后合在一起不去重。
+
+```
+select
+  device_id, gender, age, gpa
+from
+  user_profile
+where
+  university = "山东大学"
+UNION all
+select
+  device_id, gender, age, gpa
+from
+  user_profile
+where
+  gender = "male"
+```
+
+
+
+
+
+## 常用函数
 
