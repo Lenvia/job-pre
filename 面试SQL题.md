@@ -512,3 +512,404 @@ where
 
 ## 常用函数
 
+CASE
+
+```
+CASE
+WHEN 布尔表达式1 THEN 结果表达式1
+WHEN 布尔表达式2 THEN 结果表达式2 …
+WHEN 布尔表达式n THEN 结果表达式n
+[ ELSE 结果表达式n+1 ]
+END
+```
+
+IF
+
+```
+IF(布尔表达式1,结果表达式1,结果表达式2)
+```
+
+
+
+### <font color=blue>SQL26 计算25岁以上和以下的用户数量</font>
+
+想要将用户划分为25岁以下和25岁及以上两个年龄段，分别查看这两个年龄段用户数量。
+
+方法一：IF
+
+（注意 select 和 if 之间 不用带括号）
+
+```
+select
+  if (
+    age < 25
+    OR age is NULL,
+    "25岁以下",
+    "25岁及以上"
+  ) as age_cut,
+  count(device_id)
+from
+  user_profile
+group by
+  age_cut
+```
+
+
+
+方法二：CASE
+
+```
+select
+  CASE
+    when age < 25
+    OR age is NULL then "25岁以下"
+    when age >= 25 then "25岁及以上"
+  END as age_cut,
+  count(device_id)
+from
+  user_profile
+group by
+  age_cut
+```
+
+
+
+### SQL27 查看不同年龄段的用户明细
+
+想要将用户划分为**20岁以下，20-24岁，25岁及以上**三个年龄段
+
+方法一：CASE
+
+```
+select
+  device_id,
+  gender,
+  CASE
+    when age < 20 then "20岁以下"
+    when age <= 24 then "20-24岁"
+    when age >= 25 then "25岁及以上"
+    else "其他"
+  END as age_cut
+from
+  user_profile
+```
+
+
+
+方法二：嵌套IF
+
+```
+select
+  device_id,
+  gender,
+  if(
+    age is NULL,
+    "其他",
+    if(age < 20, "20岁以下", 
+      if(age <= 24, 
+        "20-24岁", 
+        "25岁及以上"))
+  ) as age_cut
+from
+  user_profile
+```
+
+
+
+### SQL28 计算用户8月每天的练题数量
+
+计算出2021年8月每天用户练习题目的数量
+
+问题分解：
+
+- 限定条件：2021年8月，写法有很多种，比如用year/month函数的`year(date)=2021 and month(date)=8`，比如用date_format函数的`date_format(date, "%Y-%m")="202108"`
+- 每天：按天分组`group by date`
+- 题目数量：count(question_id)
+
+```
+select
+  day(date) as day,
+  count(question_id) as question_cnt
+from
+  question_practice_detail
+where month(date) = 8
+group by date
+```
+
+
+
+
+
+### <font color=fuchsia>SQL29 计算用户的平均次日留存率</font>
+
+想要查看用户在某天刷题后第二天还会再来刷题的平均概率（占比）。
+
+示例：question_practice_detail
+
+| id   | device_id | quest_id | result | date       |
+| ---- | --------- | -------- | ------ | ---------- |
+| 1    | 2138      | 111      | wrong  | 2021-05-03 |
+| 2    | 3214      | 112      | wrong  | 2021-05-09 |
+| 3    | 3214      | 113      | wrong  | 2021-06-15 |
+| 4    | 6543      | 111      | right  | 2021-08-13 |
+| 5    | 2315      | 115      | right  | 2021-08-13 |
+| 6    | 2315      | 116      | right  | 2021-08-14 |
+| 7    | 2315      | 117      | wrong  | 2021-08-15 |
+
+<img src="https://tva1.sinaimg.cn/large/008vxvgGgy1h8t16nr3u1j30qc032dg6.jpg" alt="截屏2022-12-05 16.49.32" style="zoom:50%;" />
+
+具体而言，使用两个子查询，查询出两个去重的数据表，并使用条件（q2.date应该是q1.date的后一天）进行筛选。
+
+最后，分别统计q1.device_id 和 q2.device_id 作去重后的所有条目数和去重后的次日留存条目数，即可算出次日留存率。
+
+```sql
+select
+  count(q2.device_id) / count(q1.device_id) as avg_ret
+from
+  (
+    select
+      distinct device_id,
+      date
+    from
+      question_practice_detail
+  ) as q1
+  left join (
+    select
+      distinct device_id,
+      date
+    from
+      question_practice_detail
+  ) as q2 on q1.device_id = q2.device_id
+  and q2.date = DATE_ADD(q1.date, interval 1 day)
+```
+
+
+
+### SQL30 统计每种性别的人数
+
+文本处理
+
+示例：user_submit
+
+| device_id | profile              | blog_url            |
+| --------- | -------------------- | ------------------- |
+| 2138      | 180cm,75kg,27,male   | http:/url/bigboy777 |
+| 3214      | 165cm,45kg,26,female | http:/url/kittycc   |
+| 6543      | 178cm,65kg,25,male   | http:/url/tiger     |
+| 4321      | 171cm,55kg,23,female | http:/url/uhksd     |
+| 2131      | 168cm,45kg,22,female | http:/urlsydney     |
+
+
+
+方法一：SUBSTRING_INDEX
+
+https://www.cnblogs.com/mqxs/p/7380933.html
+
+```
+select
+  substring_index(profile, ",", -1) as gender,
+  count(*)
+from
+  user_submit
+group by
+  gender
+```
+
+
+
+方法二：IF
+
+```
+select
+  if(profile LIKE '%female', 'female', 'male') as gender,
+  count(*) as number
+from
+  user_submit
+group by
+  gender
+```
+
+
+
+### SQL31 提取博客URL中的用户名
+
+（同 SQL30 的表）
+
+常规方法：
+
+```
+select
+  device_id,
+  substring_index(blog_url, "/", -1) as user_name
+from
+  user_submit;
+```
+
+其他方法：
+
+```
+select 
+-- 替换法 replace(string, '被替换部分','替换后的结果')
+-- device_id, replace(blog_url,'http:/url/','') as user_name
+
+-- 截取法 substr(string, start_point, length*可选参数*)
+-- device_id, substr(blog_url,11,length(blog_url)-10) as user_nam
+
+-- 删除法 trim('被删除字段' from 列名)
+-- device_id, trim('http:/url/' from blog_url) as user_name
+
+-- 字段切割法 substring_index(string, '切割标志', 位置数（负号：从后面开始）)
+device_id, substring_index(blog_url,'/',-1) as user_name
+
+from user_submit;
+```
+
+
+
+
+
+### SQL32 截取出年龄
+
+（同 SQL30 的表）
+
+```
+select
+  substring_index(substring_index(profile, ",", -2),
+   ",", 1) as age,
+  count(*)
+from
+  user_submit
+group by
+  age
+```
+
+
+
+### <font color=fuchsia>SQL33 找出每个学校GPA最低的同学</font>
+
+想要找到每个学校gpa最低的同学来做调研，请你取出每个学校的最低gpa。
+
+窗口函数：https://zhuanlan.zhihu.com/p/92654574
+
+
+
+示例：user_profile
+
+| id   | device_id | gender | age  | university | gpa  | active_days_within_30 | question_cnt | answer_cnt |
+| ---- | --------- | ------ | ---- | ---------- | ---- | --------------------- | ------------ | ---------- |
+| 1    | 2138      | male   | 21   | 北京大学   | 3.4  | 7                     | 2            | 12         |
+| 2    | 3214      | male   |      | 复旦大学   | 4    | 15                    | 5            | 25         |
+| 3    | 6543      | female | 20   | 北京大学   | 3.2  | 12                    | 3            | 30         |
+| 4    | 2315      | female | 23   | 浙江大学   | 3.6  | 5                     | 1            | 2          |
+| 5    | 5432      | male   | 25   | 山东大学   | 3.8  | 20                    | 15           | 70         |
+| 6    | 2131      | male   | 28   | 山东大学   | 3.3  | 15                    | 7            | 13         |
+| 7    | 4321      | female | 26   | 复旦大学   | 3.6  | 9                     | 6            | 52         |
+
+
+
+**【不完善解法：方法一/二，如果有多个人对应同一个最低分，则都会匹配上，是个漏洞】**
+
+方法一：子查询 + inner join
+
+```
+select
+  up.device_id,
+  up.university,
+  up.gpa
+from
+  user_profile as up
+  inner join (
+    select
+      university,
+      min(gpa) as mgpa
+    from
+      user_profile
+    group by
+      university
+  ) as temp 
+  on up.university = temp.university
+  and up.gpa = temp.mgpa
+  order by up.universityselect
+  up.device_id,
+  up.university,
+  up.gpa
+from
+  user_profile as up
+  inner join (
+    select
+      university,
+      min(gpa) as mgpa
+    from
+      user_profile
+    group by
+      university
+  ) as temp 
+  on up.university = temp.university
+  and up.gpa = temp.mgpa
+  order by up.university
+```
+
+
+
+方法二：优化一下，inner join 改成了 where(xxx, xxx) in
+
+```
+select
+  device_id,
+  university,
+  gpa
+from
+  user_profile
+  where (university, gpa) in (
+    select
+      university,
+      min(gpa)
+    from
+      user_profile
+    group by
+      university
+  )
+  order by university
+```
+
+
+
+方法三：使用窗口函数（推荐）
+
+```
+SELECT
+  device_id,
+  university,
+  gpa
+FROM
+  (
+    SELECT
+      device_id,
+      university,
+      gpa,
+      RANK() over (
+        PARTITION BY university
+        ORDER BY
+          gpa
+      ) rk
+    FROM
+      user_profile
+  ) a
+WHERE
+  a.rk = 1;
+```
+
+
+
+
+
+
+
+
+
+
+## 需要注意的细节
+
+如果使用了 group by，那select只能出现group by的字段 或 聚集函数 。
+
+select 最后一个字段不要加点！
