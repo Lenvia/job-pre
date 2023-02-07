@@ -1,5 +1,5 @@
+## sql运行顺序 
 
-sql运行顺序 
 ```
 - from
 - join
@@ -14,6 +14,13 @@ sql运行顺序
 ```
 
 
+
+
+## 需要注意的细节
+
+如果使用了 group by，那select只能出现group by的字段 或 聚集函数 。
+
+select 最后一个字段不要加点！
 
 
 
@@ -194,8 +201,6 @@ having
 ### SQL20 分组排序练习题
 
 查看不同大学的用户平均发帖情况，并期望结果按照平均发帖情况进行升序排列
-
-
 
 ```
 select university, avg(question_cnt) as avg_question_cnt
@@ -465,18 +470,6 @@ from
   inner join question_detail as qd on qpd.question_id = qd.question_id
 group by
   university,
-  difficult_levelselect
-  university,
-  difficult_level,
-  round(
-    count(qpd.question_id) / count(distinct qpd.device_id),
-    4
-  ) as avg_answer_cnt
-from
-  user_profile as up
-  inner join question_practice_detail as qpd on up.device_id = qpd.device_id and up.university = "山东大学"
-  inner join question_detail as qd on qpd.question_id = qd.question_id
-group by
   difficult_level
 ```
 
@@ -561,8 +554,7 @@ group by
 ```
 select
   CASE
-    when age < 25
-    OR age is NULL then "25岁以下"
+    when age < 25 OR age is NULL then "25岁以下"
     when age >= 25 then "25岁及以上"
   END as age_cut,
   count(device_id)
@@ -905,11 +897,3 @@ WHERE
 
 
 
-
-
-
-## 需要注意的细节
-
-如果使用了 group by，那select只能出现group by的字段 或 聚集函数 。
-
-select 最后一个字段不要加点！
