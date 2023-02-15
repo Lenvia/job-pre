@@ -1,4 +1,4 @@
-## sql运行顺序 
+## sql执行顺序 
 
 ```
 - from
@@ -15,12 +15,22 @@
 
 
 
+## 案例参考
 
-## 需要注意的细节
+[30道经典SQL面试题讲解(11-20)](https://mp.weixin.qq.com/s?__biz=MzI2MjE3OTA1MA==&mid=2247488048&idx=1&sn=ba490f6c2717e9bed6551b2aec8c08a5&chksm=ea4e43b5dd39caa3b41876535679dca31392aa86006d449b0ce2e7739629fa2039be63864970&scene=21#wechat_redirect)
 
-如果使用了 group by，那select只能出现group by的字段 或 聚集函数 。
+[30道经典SQL面试题讲解(21-30)](https://mp.weixin.qq.com/s?__biz=MzI2MjE3OTA1MA==&mid=2247489680&idx=1&sn=beffa4b2dbe80ec0d1a50149c4b08fe5&chksm=ea4e4915dd39c0036166745ee152abfd8aa8066f67c909988f537f0b487e1e2b8d812204ba73&scene=27)（偏难）
+
+
+
+
+## 知识点
+
+如果使用了 group by，那select只能出现group by里的字段 或 聚集函数 。
 
 select 最后一个字段不要加点！
+
+
 
 
 
