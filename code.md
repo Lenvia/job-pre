@@ -85,3 +85,79 @@ public:
     }
 };
 ```
+
+
+
+
+
+### 剑指 Offer 35. 复杂链表的复制
+
+方法一：递归+map
+
+```
+class Node {
+public:
+    int val;
+    Node* next;
+    Node* random;
+    
+    Node(int _val) {
+        val = _val;
+        next = NULL;
+        random = NULL;
+    }
+};
+*/
+class Solution {
+public:
+    unordered_map<Node*, Node*> cache;
+    Node* copyRandomList(Node* head) {
+        if(head == NULL) return NULL;
+
+        if(cache.find(head) == cache.end()){
+            Node* headNew = new Node(head->val);
+            cache[head] = headNew;
+            headNew -> next = copyRandomList(head->next);
+            headNew -> random = copyRandomList(head->random);
+            return headNew;
+        }
+        return cache[head];
+    }
+};
+```
+
+
+
+方法二：冗余节点
+
+```
+class Solution {
+public:
+    
+    Node* copyRandomList(Node* head) {
+        if(head == NULL) return NULL;
+
+        // 第一遍先完成冗余节点创建
+        for(Node* node = head; node!= NULL; node = node->next->next){
+            Node* nodeNew = new Node(node->val);
+            nodeNew->next = node->next;
+            node->next = nodeNew;
+        }
+        // 第二遍完善random指针，不要修改next
+        for(Node* node = head; node!= NULL; node = node->next->next){
+            Node* nodeNew = node->next;
+            nodeNew->random = node->random? node->random->next : NULL; // 注意判空
+        }
+
+        Node* headNew = head->next;
+        // 第三遍复原原指针，并完善next指针
+        for(Node* node = head; node!= NULL; node = node->next){
+            Node* nodeNew = node->next;
+            node->next = nodeNew->next;
+            nodeNew->next = node->next ? node->next->next : NULL; 
+        }
+        return headNew;
+    }
+};
+```
+
