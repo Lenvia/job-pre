@@ -161,3 +161,92 @@ public:
 };
 ```
 
+
+
+
+
+
+
+### 剑指 Offer 53 - I. 在排序数组中查找数字 I
+
+统计一个数字在排序数组中出现的次数。
+
+手写二分查找（存在相等元素的第一个位置和最后一个位置）
+
+```
+class Solution {
+public:
+
+    int binarySearch(vector<int>& nums, int target, bool lower) {
+        int left = 0, right = (int)nums.size() - 1;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            if (nums[mid] > target) {
+                right = mid - 1;
+                
+            } else if(nums[mid] < target) {
+                left = mid + 1;
+            }
+            else{  // 向左继续寻找
+                if(lower){
+                    for(int j=mid-1; j>=0; j--){
+                        if(nums[j] != nums[j+1]){
+                            return j+1;
+                        }
+                    }
+                    return 0;
+                }
+                else{
+                    for(int j=mid+1; j<nums.size(); j++){
+                        if(nums[j] != nums[j-1]){
+                            return j-1;
+                        }
+                    }
+                    return nums.size()-1;
+                }
+            }
+        }
+        return -1;
+    }
+
+    int search(vector<int>& nums, int target) {
+        if(nums.size() == 0) return 0;
+
+        int index1 = binarySearch(nums, target, true);
+        if(index1 == -1) return 0;
+        int index2 = binarySearch(nums, target, false);
+
+        return index2 - index1 + 1;
+    }
+};
+```
+
+
+
+
+
+### 剑指 Offer 53 - II. 0～n-1中缺失的数字
+
+如果不相等，就调换位置。第七行 if 和 while 都能过，但是while 时间长。我不确定if的写法完不完备。
+
+```
+class Solution {
+public:
+    int missingNumber(vector<int>& nums) {
+        if(nums.size()==0) return -1;
+
+        for(int i=0; i<nums.size(); i++){
+            if(nums[i]!= i && nums[i]>=0 && nums[i] <nums.size() && nums[nums[i]] != nums[i]){
+                swap(nums[i], nums[nums[i]]);
+            }
+        }
+
+        for(int i=0; i<nums.size(); i++){
+            if(nums[i] != i) return i;
+        }
+        return nums.size();
+    }
+};
+```
+
