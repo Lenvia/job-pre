@@ -250,3 +250,38 @@ public:
 };
 ```
 
+
+
+### 剑指 Offer 46. 把数字翻译成字符串
+
+动态规划。注意边界
+
+```
+class Solution {
+public:
+    int translateNum(int num) {
+        if(num < 0) return 0;
+        if(num == 0) return 1;
+        vector<int>number;
+        while(num){
+            number.push_back(num%10);
+            num/=10;
+        }
+        reverse(number.begin(), number.end());
+        int n = number.size();
+
+        int dp[n];
+        memset(dp, 0, sizeof(dp));
+        dp[0] = 1;
+        for(int i=1; i<n; i++){
+            dp[i] = dp[i-1];
+            if(number[i-1] && number[i-1]*10 + number[i] <=25){
+                if(i==1) dp[i]++;
+                else dp[i] += dp[i-2];
+            }
+        }
+        return dp[n-1];
+    }
+};
+```
+
