@@ -285,3 +285,65 @@ public:
 };
 ```
 
+
+
+
+
+### 剑指 Offer 12. 矩阵中的路径
+
+常规dfs
+
+```
+class Solution {
+public:
+
+    int dir[4][2] = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+    int m, n;
+    bool visited[8][8];
+
+    bool dfs(vector<vector<char>>& board, string& word, int x, int y, int pos){
+        
+        if(board[x][y] != word[pos])
+            return false;
+        if(pos == word.size()-1)  // 不能等到 pos == word.size()，如果最后一个位置在边界，下一个位置newx newy会过滤掉
+            return true;
+
+        for(int i=0; i<4; i++){
+            int newx = x + dir[i][0];
+            int newy = y + dir[i][1];
+            if(newx <0 || newx >=m || newy<0 || newy >=n || visited[newx][newy])
+                continue;
+            
+            visited[newx][newy] = true;
+            if(dfs(board, word, newx, newy, pos+1))
+                return true;
+            visited[newx][newy] = false;
+        }
+        return false;
+    }
+
+    bool exist(vector<vector<char>>& board, string word) {
+        if(board.size() == 0 || board[0].size()==0 || word.size() == 0) return false;
+
+        m = board.size();
+        n = board[0].size();
+        
+        memset(visited, false, sizeof(visited));
+    
+        for(int i=0; i<m; i++){
+            for(int j=0; j<n; j++){
+                if(board[i][j] == word[0]){  // 嗯最好还是在dfs外部找起始点
+                    visited[i][j] = true;
+                    if(dfs(board, word, i, j, 0))
+                        return true;
+                    visited[i][j] = false;
+                }
+                
+            }
+        }
+        return false;
+        
+    }
+};
+```
+
