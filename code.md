@@ -347,3 +347,62 @@ public:
 };
 ```
 
+
+
+
+
+
+
+### 面试题45. 把数组排成最小的数
+
+
+
+```
+class Solution {
+public:
+
+    static bool cmp(string a, string b){
+        return a+b < b+a;
+    }
+    string minNumber(vector<int>& nums) {
+        if(nums.size() == 0) return "";
+
+        vector<string>vec;
+        for(int i=0; i<nums.size(); i++)
+            vec.push_back(std::to_string(nums[i]));
+        sort(vec.begin(), vec.end(), cmp);
+        string res = "";
+        for(int i=0; i<vec.size(); i++)
+            res += vec[i];
+        return res;
+    }
+};
+```
+
+
+
+
+
+
+
+### 剑指 Offer 64. 求1+2+…+n
+
+求 `1+2+...+n` ，要求不能使用乘除法、for、while、if、else、switch、case等关键字及条件判断语句（A?B:C）。
+
+官方：快速乘进一步转化为位运算
+
+https://leetcode.cn/problems/qiu-12n-lcof/solutions/271053/qiu-12n-by-leetcode-solution/
+
+秀儿：
+
+```
+class Solution {
+public:
+
+    int sumNums(int n) {
+        int arr[n][n+1];
+        return sizeof(arr)>>3;
+    }
+};
+```
+
