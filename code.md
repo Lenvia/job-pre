@@ -406,3 +406,42 @@ public:
 };
 ```
 
+
+
+
+
+
+
+### <font color=red>剑指 Offer 56 - I. 数组中数字出现的次数</font>
+
+位运算
+
+```
+class Solution {
+public:
+    vector<int> singleNumbers(vector<int>& nums) {
+        int ret = 0;
+        // 所有数字的异或最终等于两个只出现一次的数字（假设为a，b）的异或
+        for(int i=0; i<nums.size(); i++){
+            ret ^= nums[i];
+        }
+        // 找出ret最低位为1的
+        int div = 1;
+        while(!(ret & div)){
+            div <<=1;
+        }
+        // ret 在这个位置上为1，表明 a 和 b在这一位上是不一样的
+        // 然后捏，其他的数可以根据 这个位上是1还是0，划分成两组
+        // 然后对两组分别异或，最终两组的结果就是两个数。
+        int a = 0; int b = 0;
+        for(int i=0; i<nums.size(); i++){
+            if(div & nums[i])
+                a ^= nums[i];
+            else b^= nums[i];
+        }
+        return vector<int>{a, b};
+
+    }
+};
+```
+
