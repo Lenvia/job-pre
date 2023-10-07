@@ -12,7 +12,7 @@
 
 ## 文档
 
-`后端准备.md` 计算机基础知识主要参考[此博客](https://www.xiaolincoding.com/)，后端通用。在末尾的语言章节主要面向 **Golang**。<font color=red>**持续更新**</font>。
+`后端准备.md` 计算机基础知识部分参考[小林coding](https://www.xiaolincoding.com/)，后端通用。在末尾的语言章节主要面向 **Golang**。<font color=red>**持续更新**</font>。
 
 `场景/业务题.md` 从`后端准备.md` 中独立出来，主要关于场景方案设计。
 
